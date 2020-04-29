@@ -1,0 +1,61 @@
+name: wind
+version: 0.1.0.0
+github: 'CameronDiver/wind'
+license: BSD3
+author: 'Cameron Diver'
+maintainer: 'cameron@0xcd.dev'
+copyright: '2020 Cameron Diver'
+
+extra-source-files:
+  - README.md
+  - ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description: Please see the README on GitHub at <https://github.com/CameronDiver/wind#readme>
+
+dependencies:
+  - base >= 4.7 && < 5
+  - text
+
+default-extensions:
+  - OverloadedStrings
+  - RecordWildCards
+
+ghc-options:
+  - -Wall
+
+library:
+  source-dirs: src
+  dependencies:
+    - megaparsec
+    - parser-combinators
+    - string-conversions
+
+executables:
+  wind-exe:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - wind
+      - optparse-applicative
+
+tests:
+  wind-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - wind

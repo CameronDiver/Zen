@@ -1,0 +1,8 @@
+cradle:
+  stack:
+    - path: './src'
+      component: wind:lib
+    - path: './app'
+      component: wind:exe:wind-exe
+    - path: './test'
+      component: wind:test:wind-test
