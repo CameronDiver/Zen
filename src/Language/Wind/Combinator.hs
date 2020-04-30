@@ -5,23 +5,21 @@ module Language.Wind.Combinator
 import           Control.Monad.Combinators.Expr
 import           Text.Megaparsec
 
+import           Language.Wind.AST
 import           Language.Wind.Lexemes
-import           Language.Wind.Parser
 
 programParser :: Parser Program
-programParser = between sp eof $ do Program <$> many statementP
+programParser = between sp eof $ Program <$> many statementP
 
 termP :: Parser Expr
 termP =
   parens exprP <|> Literal <$> int <|> CharLiteral <$> charLiteral <|>
   StringLiteral <$> stringLiteral <|>
-  Identifier <$> identifier
+  Identifier <$> identifier <|>
+  VarDeclaration <$> varDeclP
 
 exprP :: Parser Expr
 exprP = makeExprParser termP opTable
-
-exprMaybeP :: Parser Expr
-exprMaybeP = option NoExpr exprP
 
 varDeclP :: Parser Expr
 varDeclP = do
@@ -29,7 +27,7 @@ varDeclP = do
   exprP
 
 statementP :: Parser Statement
-statementP = Expr <$> exprP <* semi <|> VarDeclaration <$> varDeclP <* semi
+statementP = Expr <$> exprP <* semi
 
 opTable :: [[Operator Parser Expr]]
 opTable = [[infixL Add "+", infixL Sub "-"], [InfixR $ Assign <$ symbol "="]]

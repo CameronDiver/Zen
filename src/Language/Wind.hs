@@ -1,25 +1,24 @@
 module Language.Wind where
 
 import           Data.Text
-import           Text.Megaparsec          (runParser)
-import           Text.Megaparsec.Error    (errorBundlePretty)
+import           Data.Void
+import           Text.Megaparsec                    (runParser)
+import           Text.Megaparsec.Error              (ParseErrorBundle)
 
+import           Language.Wind.AST
 import           Language.Wind.Combinator
-import           Language.Wind.Lexemes
-import           Language.Wind.Parser
+import           Language.Wind.SemanticAnalyser
+import           Language.Wind.SemanticAnalyser.AST
 
+data CompileOpts =
+  CompileOpts
+    { compileOptsFilename :: String
+    , compileOptsOutput   :: String
+    , compileOptsInput    :: Text
+    }
 
-data CompileOpts = CompileOpts { compileOptsFilename :: String
-                               , compileOptsOutput :: String
-                               , compileOptsInput :: Text
-                               }
+generateAST :: String -> Text -> Either (ParseErrorBundle Text Void) Program
+generateAST = runParser programParser
 
-compile :: CompileOpts -> IO ()
-compile (CompileOpts filename output input) = do
-  putStrLn $ "Compiling " ++ filename
-  putStrLn $ " into " ++ output
-  let parseTree = runParser programParser filename input
-  case parseTree of
-    Left err  -> putStrLn $ errorBundlePretty  err
-    Right ast -> print ast
-  return ()
+analyseAST :: Program -> Either SemanticError SAProgram
+analyseAST = checkProgram

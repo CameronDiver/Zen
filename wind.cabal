@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e9ac577724bd503730dfec411a0a121d9cf612050e1b5bdeed4cda9cb698d101
+-- hash: 182d2e1fd41dc02c25c2ef84f693efac65e4e00cc00ab148c18501049caf9e19
 
 name:           wind
 version:        0.1.0.0
@@ -28,19 +28,25 @@ source-repository head
 library
   exposed-modules:
       Language.Wind
+      Language.Wind.AST
       Language.Wind.Combinator
       Language.Wind.Lexemes
-      Language.Wind.Parser
+      Language.Wind.SemanticAnalyser
+      Language.Wind.SemanticAnalyser.AST
+      Language.Wind.SemanticAnalyser.Error
   other-modules:
       Paths_wind
   hs-source-dirs:
       src
   default-extensions: OverloadedStrings RecordWildCards
-  ghc-options: -Wall
+  ghc-options: -Wall -fwarn-incomplete-patterns
   build-depends:
       base >=4.7 && <5
+    , containers
     , megaparsec
+    , mtl
     , parser-combinators
+    , prettyprinter
     , string-conversions
     , text
   default-language: Haskell2010
@@ -52,10 +58,13 @@ executable wind-exe
   hs-source-dirs:
       app
   default-extensions: OverloadedStrings RecordWildCards
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , megaparsec
     , optparse-applicative
+    , pretty-simple
+    , prettyprinter
     , text
     , wind
   default-language: Haskell2010
@@ -68,9 +77,11 @@ test-suite wind-test
   hs-source-dirs:
       test
   default-extensions: OverloadedStrings RecordWildCards
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , megaparsec
+    , prettyprinter
     , text
     , wind
   default-language: Haskell2010

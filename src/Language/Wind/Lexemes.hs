@@ -5,11 +5,12 @@ import           Data.Char                  (ord)
 import           Data.String.Conversions    (cs)
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
+import           Data.Void
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-import           Language.Wind.Parser       (Parser)
+type Parser = Parsec Void Text
 
 sp :: Parser ()
 sp = L.space space1 lineCmnt blockCmnt

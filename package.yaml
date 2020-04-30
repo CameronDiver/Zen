@@ -22,6 +22,8 @@ description: Please see the README on GitHub at <https://github.com/CameronDiver
 dependencies:
   - base >= 4.7 && < 5
   - text
+  - prettyprinter
+  - megaparsec
 
 default-extensions:
   - OverloadedStrings
@@ -29,13 +31,15 @@ default-extensions:
 
 ghc-options:
   - -Wall
+  - -fwarn-incomplete-patterns
 
 library:
   source-dirs: src
   dependencies:
-    - megaparsec
+    - containers
     - parser-combinators
     - string-conversions
+    - mtl
 
 executables:
   wind-exe:
@@ -48,6 +52,7 @@ executables:
     dependencies:
       - wind
       - optparse-applicative
+      - pretty-simple
 
 tests:
   wind-test:
