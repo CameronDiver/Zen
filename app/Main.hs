@@ -1,8 +1,10 @@
 module Main where
 
-import qualified Data.Text.IO          as T
-import           Options.Applicative   hiding (action)
-import           Text.Megaparsec.Error (errorBundlePretty)
+import           Data.String.Conversions
+import qualified Data.Text.IO            as T
+import           LLVM.Pretty
+import           Options.Applicative     hiding (action)
+import           Text.Megaparsec.Error   (errorBundlePretty)
 import           Text.Pretty.Simple
 
 -- Uncomment if using Pretty custom instance
@@ -13,18 +15,17 @@ import           Language.Wind
 data RunAction
   = AST
   | SemanticAST
+  | LLVM
   | Compile
 
 data Flag =
   Verbose
   deriving (Show)
 
-data Options =
-  Options
-    { filename :: FilePath
-    , action   :: RunAction
-    , flags    :: [Flag]
-    }
+data Options = Options { filename :: FilePath
+                       , action :: RunAction
+                       , flags :: [Flag]
+                       }
 
 optionsP :: Parser Options
 optionsP =
@@ -37,6 +38,7 @@ runActionP =
   flag'
     SemanticAST
     (long "sast" <> short 's' <> help "Print the semantically checked AST") <|>
+  flag' LLVM (long "llvm" <> short 'l' <> help "Pring the LLVM IR") <|>
   pure Compile
 
 flagP :: Parser Flag
@@ -54,11 +56,14 @@ runOptions (Options file action _) = do
   let eitherAst = generateAST file fileContent
   case eitherAst of
     Left e -> putStrLn $ errorBundlePretty e
-    Right ast ->
-      case action of
-        AST -> pPrint ast --putDoc $ pretty ast <> "\n"
-        SemanticAST ->
-          case analyseAST ast of
-            Left err   -> print err
-            Right sast -> pPrint sast
-        Compile -> putStrLn "Cant compile yet"
+    Right ast -> do
+      let eitherSast = analyseAST ast
+      case eitherSast of
+        Left err -> print err
+        Right sast -> do
+          let llvm = generateLLVM sast
+          case action of
+            AST         -> pPrint ast -- putDoc $ pretty ast <> "\n"
+            SemanticAST -> pPrint sast
+            LLVM        -> (T.putStrLn . cs . ppllvm) llvm
+            Compile     -> putStrLn "Cant compile yet"
