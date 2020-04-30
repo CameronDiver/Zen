@@ -25,6 +25,7 @@ dependencies:
   - prettyprinter
   - megaparsec
   - string-conversions
+  - llvm-hs-pure
 
 default-extensions:
   - OverloadedStrings
@@ -42,7 +43,6 @@ library:
     - containers
     - parser-combinators
     - mtl
-    - llvm-hs-pure
 
 executables:
   wind-exe:
@@ -57,6 +57,9 @@ executables:
       - optparse-applicative
       - pretty-simple
       - llvm-hs-pretty
+      - directory
+      - unix
+      - process
 
 tests:
   wind-test:

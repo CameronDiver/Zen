@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e13955ef78b04e7203159207960954e72b037361b0a2d14da784cc072becb1d5
+-- hash: 96098ecf2477ec88b46d1db590dfc13f99adebaa3134cd492f318d357515f2a5
 
 name:           wind
 version:        0.1.0.0
@@ -66,13 +66,17 @@ executable wind-exe
   ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , directory
     , llvm-hs-pretty
+    , llvm-hs-pure
     , megaparsec
     , optparse-applicative
     , pretty-simple
     , prettyprinter
+    , process
     , string-conversions
     , text
+    , unix
     , wind
   default-language: Haskell2010
 
@@ -87,6 +91,7 @@ test-suite wind-test
   ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , llvm-hs-pure
     , megaparsec
     , prettyprinter
     , string-conversions

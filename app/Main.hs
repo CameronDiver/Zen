@@ -1,11 +1,19 @@
 module Main where
 
+import           Control.Exception
 import           Data.String.Conversions
+import qualified Data.Text               as T
 import qualified Data.Text.IO            as T
+import           LLVM.AST                (Module)
 import           LLVM.Pretty
 import           Options.Applicative     hiding (action)
 import           Text.Megaparsec.Error   (errorBundlePretty)
 import           Text.Pretty.Simple
+
+import           System.Directory
+import           System.IO
+import           System.Posix.Temp
+import           System.Process
 
 -- Uncomment if using Pretty custom instance
 -- import           Data.Text.Prettyprint.Doc
@@ -66,4 +74,20 @@ runOptions (Options file action _) = do
             AST         -> pPrint ast -- putDoc $ pretty ast <> "\n"
             SemanticAST -> pPrint sast
             LLVM        -> (T.putStrLn . cs . ppllvm) llvm
-            Compile     -> putStrLn "Cant compile yet"
+            Compile     -> compile llvm file
+
+compile :: Module -> FilePath -> IO ()
+compile mod path = do
+  bracket (mkdtemp "build") removePathForcibly $ \buildDir ->
+    withCurrentDirectory buildDir $
+      -- Create a temporary file for the LLVM IR
+     do
+      (llvm, llvmHandle) <- mkstemps "output" ".ll"
+      T.hPutStrLn llvmHandle (cs $ ppllvm mod)
+      hClose llvmHandle
+      -- Compile with clang
+      callProcess
+        "clang"
+        ["-Wno-override-module", "-lm", llvm, "-o", "../" <> exePath]
+  where
+    exePath = T.unpack $ T.intercalate "." $ init $ T.splitOn "." (T.pack path)

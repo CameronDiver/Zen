@@ -5,13 +5,16 @@ module Language.Wind.CodeGen
 import           Control.Monad.State
 
 import qualified LLVM.AST                           as AST
+import qualified LLVM.AST.Constant                  as C
 import qualified LLVM.AST.Type                      as AST
+import qualified LLVM.AST.Typed                     as AST
 import qualified LLVM.IRBuilder.Constant            as L
 import qualified LLVM.IRBuilder.Instruction         as L
 import qualified LLVM.IRBuilder.Module              as L
 import qualified LLVM.IRBuilder.Monad               as L
 
 import qualified Data.Map                           as M
+import           Data.String.Conversions
 import           Data.Text                          (Text)
 import qualified Data.Text                          as T
 import           Debug.Trace                        (traceShow)
@@ -52,12 +55,15 @@ codegenExpr (t, SAVarDeclaration (_, SAIdentifier n)) = do
   ltype <- typeToLLVMType t
   addr <- L.alloca ltype Nothing 0
   registerOperand n addr
-  pure addr
-codegenExpr (_, SAIdentifier name) = gets ((M.! name) . operands)
+  pure $ L.int32 0
+codegenExpr (t, SAIdentifier name) = do
+  addr <- gets ((M.! name) . operands)
+  ltype <- typeToLLVMType t
+  L.load addr 0
 codegenExpr (t, SAVarInitialize (_, SAIdentifier n) expr) = do
   ltype <- typeToLLVMType t
   op <- codegenExpr expr
-  addr <- L.alloca ltype Nothing 0
+  addr <- L.alloca (AST.typeOf op) Nothing 0
   L.store addr 0 op
   registerOperand n addr
   pure op
