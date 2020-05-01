@@ -2,7 +2,7 @@ module Language.Wind.Combinator
   ( programParser
   ) where
 
-import           Control.Monad.Combinators.Expr
+import           Control.Monad.Combinators.Expr as E
 import           Text.Megaparsec
 
 import           Language.Wind.AST
@@ -43,7 +43,7 @@ callP = try (Call <$> identifier <*> parens (exprP `sepBy` comma))
 statementP :: Parser Statement
 statementP = Expr <$> exprP <* semi
 
-opTable :: [[Operator Parser Expr]]
+opTable :: [[E.Operator Parser Expr]]
 opTable = [[infixL Add "+", infixL Sub "-"], [InfixR $ Assign <$ symbol "="]]
   where
     infixL op sym = InfixL $ BinaryOp op <$ operator sym

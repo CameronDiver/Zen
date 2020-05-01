@@ -16,10 +16,6 @@ import           Language.Wind.CodeGen.Env
 import           Language.Wind.CodeGen.Util
 import           Language.Wind.SemanticAnalyser.AST
 
-type LLVM = L.ModuleBuilderT (State Env)
-
-type Codegen = L.IRBuilderT LLVM
-
 codegenMain :: SAProgram -> (SAStatement -> Codegen ()) -> LLVM ()
 codegenMain (SAProgram stmts) fn =
   void $

@@ -26,7 +26,7 @@ data SAExpr'
   | SAFloatLiteral Double
   | SAStringLiteral Text
   | SACharLiteral Int
-  | SABinaryOp Op SAExpr SAExpr
+  | SABinaryOp Operator SAExpr SAExpr
   | SAAssign SAExpr SAExpr
   | SAIdentifier Text
   | SAVarDeclaration SAExpr
