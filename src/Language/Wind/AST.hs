@@ -19,6 +19,7 @@ data Expr
   | Assign Expr Expr
   | Identifier Text
   | VarDeclaration Expr
+  | Call Text [Expr]
   | NoExpr
   deriving (Show, Eq)
 

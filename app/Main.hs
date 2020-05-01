@@ -1,12 +1,14 @@
 module Main where
 
 import           Control.Exception
+import           Control.Monad
 import           Data.String.Conversions
 import qualified Data.Text               as T
 import qualified Data.Text.IO            as T
 import           LLVM.AST                (Module)
 import           LLVM.Pretty
 import           Options.Applicative     hiding (action)
+import           System.Exit
 import           Text.Megaparsec.Error   (errorBundlePretty)
 import           Text.Pretty.Simple
 
@@ -25,15 +27,18 @@ data RunAction
   | SemanticAST
   | LLVM
   | Compile
+  deriving (Eq)
 
 data Flag =
   Verbose
   deriving (Show)
 
-data Options = Options { filename :: FilePath
-                       , action :: RunAction
-                       , flags :: [Flag]
-                       }
+data Options
+  = Options
+      { filename :: FilePath
+      , action :: RunAction
+      , flags :: [Flag]
+      }
 
 optionsP :: Parser Options
 optionsP =
@@ -65,6 +70,10 @@ runOptions (Options file action _) = do
   case eitherAst of
     Left e -> putStrLn $ errorBundlePretty e
     Right ast -> do
+      when
+        (action == AST)
+        (do pPrint ast
+            exitSuccess)
       let eitherSast = analyseAST ast
       case eitherSast of
         Left err -> print err
@@ -77,7 +86,7 @@ runOptions (Options file action _) = do
             Compile     -> compile llvm file
 
 compile :: Module -> FilePath -> IO ()
-compile mod path = do
+compile mod path =
   bracket (mkdtemp "build") removePathForcibly $ \buildDir ->
     withCurrentDirectory buildDir $
       -- Create a temporary file for the LLVM IR

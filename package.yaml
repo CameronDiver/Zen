@@ -32,6 +32,7 @@ default-extensions:
   - RecordWildCards
   - FlexibleContexts
   - MultiParamTypeClasses
+  - TupleSections
 
 ghc-options:
   - -Wall

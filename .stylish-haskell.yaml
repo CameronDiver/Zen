@@ -24,8 +24,10 @@ steps:
       records: true
 
   - records:
-    equals: 'same_line'
-    'first_field': 'same_line'
+      equals: 'indent 2'
+      'first_field': 'indent 2'
+      'field_comment': 2
+      deriving: 2
 
   # Import cleanup
   - imports:
@@ -208,10 +210,10 @@ steps:
       remove_redundant: true
 
   # Replace tabs by spaces. This is disabled by default.
-  # - tabs:
-  #     # Number of spaces to use for each tab. Default: 8, as specified by the
-  #     # Haskell report.
-  #     spaces: 8
+  #   - tabs:
+  #       # Number of spaces to use for each tab. Default: 8, as specified by the
+  #       # Haskell report.
+  #       spaces: 4
 
   # Remove trailing whitespace
   - trailing_whitespace: {}
@@ -219,11 +221,11 @@ steps:
   # Squash multiple spaces between the left and right hand sides of some
   # elements into single spaces. Basically, this undoes the effect of
   # simple_align but is a bit less conservative.
-  # - squash: {}
+  #- squash: {}
 
 # A common setting is the number of columns (parts of) code will be wrapped
 # to. Different steps take this into account. Default: 80.
-columns: 100
+columns: 80
 
 # By default, line endings are converted according to the OS. You can override
 # preferred format here.

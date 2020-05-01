@@ -13,10 +13,19 @@ programParser = between sp eof $ Program <$> many statementP
 
 termP :: Parser Expr
 termP =
-  parens exprP <|> Literal <$> int <|> CharLiteral <$> charLiteral <|>
+  parens exprP <|>
+  ---------------------
+  callP <|>
+  ---------------------
+  varDeclP <|>
+  ---------------------
+  Literal <$> int <|>
+  ---------------------
+  CharLiteral <$> charLiteral <|>
+  ---------------------
   StringLiteral <$> stringLiteral <|>
-  Identifier <$> identifier <|>
-  VarDeclaration <$> varDeclP
+  ---------------------
+  Identifier <$> identifier
 
 exprP :: Parser Expr
 exprP = makeExprParser termP opTable
@@ -24,7 +33,10 @@ exprP = makeExprParser termP opTable
 varDeclP :: Parser Expr
 varDeclP = do
   _ <- rword "let"
-  exprP
+  VarDeclaration <$> exprP
+
+callP :: Parser Expr
+callP = try (Call <$> identifier <*> parens (exprP `sepBy` comma))
 
 statementP :: Parser Statement
 statementP = Expr <$> exprP <* semi

@@ -31,8 +31,16 @@ type Codegen = L.IRBuilderT LLVM
 
 codegenProgram :: SAProgram -> AST.Module
 codegenProgram prg =
-  flip evalState (Env {operands = M.empty, strings = (M.empty, 0)}) $
-  L.buildModuleT "wind-prog" $ codegenMain prg codegenStatement
+  flip evalState (Env {operands = M.empty, strings = M.empty}) $
+    L.buildModuleT "wind-prog" $ do
+      emitBuiltins
+      codegenMain prg codegenStatement
+
+emitBuiltins :: LLVM ()
+emitBuiltins =
+  forM_ builtinFunctions $ \(name, retT, paramTs) -> do
+    func <- L.extern (AST.mkName $ cs name) paramTs retT
+    registerOperand name func
 
 codegenStatement :: SAStatement -> Codegen ()
 codegenStatement stmt =
@@ -51,20 +59,31 @@ codegenExpr (t, SABinaryOp op lhs rhs) = do
         (TyInt, TyInt) -> L.add lhs' rhs'
         (TyFloat, TyFloat) -> L.fadd lhs' rhs'
         ty -> traceShow ty $ error "Not sure how to add values"
+codegenExpr (TyString, SAStringLiteral s) = do
+  strs <- gets strings
+  case M.lookup s strs of
+    Nothing -> do
+      let name = AST.mkName (show (M.size strs) <> ".str")
+      op <- L.globalStringPtr (cs s) name
+      modify $ \env -> env {strings = M.insert s (AST.ConstantOperand op) strs}
+      pure (AST.ConstantOperand op)
+    Just op -> pure op
 codegenExpr (t, SAVarDeclaration (_, SAIdentifier n)) = do
   ltype <- typeToLLVMType t
   addr <- L.alloca ltype Nothing 0
   registerOperand n addr
   pure $ L.int32 0
-codegenExpr (t, SAIdentifier name) = do
+codegenExpr (_, SAIdentifier name) = do
   addr <- gets ((M.! name) . operands)
-  ltype <- typeToLLVMType t
   L.load addr 0
-codegenExpr (t, SAVarInitialize (_, SAIdentifier n) expr) = do
-  ltype <- typeToLLVMType t
+codegenExpr (_, SAVarInitialize (_, SAIdentifier n) expr) = do
   op <- codegenExpr expr
   addr <- L.alloca (AST.typeOf op) Nothing 0
   L.store addr 0 op
   registerOperand n addr
   pure op
+codegenExpr (_, SACall name exps) = do
+  exps' <- mapM (fmap (, []) . codegenExpr) exps
+  f <- gets ((M.! name) . operands)
+  L.call f exps'
 codegenExpr t = traceShow t $ error "Internal error, unknown expression "

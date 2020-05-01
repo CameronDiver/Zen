@@ -12,10 +12,12 @@ import           Language.Wind.Combinator
 import           Language.Wind.SemanticAnalyser
 import           Language.Wind.SemanticAnalyser.AST
 
-data CompileOpts = CompileOpts { compileOptsFilename :: String
-                               , compileOptsOutput :: String
-                               , compileOptsInput :: Text
-                               }
+data CompileOpts
+  = CompileOpts
+      { compileOptsFilename :: String
+      , compileOptsOutput :: String
+      , compileOptsInput :: Text
+      }
 
 generateAST :: String -> Text -> Either (ParseErrorBundle Text Void) Program
 generateAST = runParser programParser

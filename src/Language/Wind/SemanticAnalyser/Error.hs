@@ -10,7 +10,7 @@ type Name = Text
 data SemanticError
   = TypeError
       { expected :: [Type]
-      , got      :: Type
+      , got :: Type
       }
   | UndefinedSymbol
       { name :: Text
@@ -24,5 +24,8 @@ data SemanticError
   | DuplicateVarDeclaration
       { name :: Text
       }
-  -- FIXME: Make our pretty instances
+  | InvalidArgumentCount
+      { required :: Int
+      , provided :: Int
+      }
   deriving (Show)

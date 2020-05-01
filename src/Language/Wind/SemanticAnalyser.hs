@@ -7,9 +7,10 @@ import           Control.Monad.Except
 import           Control.Monad.State
 import           Data.List                            (find)
 import qualified Data.Map                             as M
-import           Data.Maybe                           (fromMaybe)
-import           Data.Maybe                           (isJust)
+import           Data.Maybe                           (fromMaybe, isJust,
+                                                       isNothing)
 import           Data.Text                            (Text)
+import           Debug.Trace                          (traceShow)
 
 import           Language.Wind.AST
 import           Language.Wind.SemanticAnalyser.AST
@@ -18,17 +19,20 @@ import           Language.Wind.SemanticAnalyser.Error
 -- TODO: Also store whether these values are const
 type Vars = M.Map (Text, VarScope) Type
 
-data Env =
-  Env
-    { vars :: Vars
-    }
+type Functions = M.Map Text Function
+
+data Env
+  = Env
+      { vars :: Vars
+      , functions :: Functions
+      }
 
 type Semantic = ExceptT SemanticError (State Env)
 
 checkProgram :: Program -> Either SemanticError SAProgram
 checkProgram program = evalState (runExceptT (checkProgram' program)) baseEnv
   where
-    baseEnv = Env {vars = M.empty}
+    baseEnv = Env {vars = M.empty, functions = builtInFunctions}
     checkProgram' (Program statements) = do
       stmts <- mapM checkStatement statements
       pure $ SAProgram stmts
@@ -72,6 +76,23 @@ checkExpr expr =
               pure (eType, SAVarInitialize (eType, SAIdentifier name) e')
             _ -> throwError $ InvalidVarDeclaration target
         _ -> throwError $ InvalidVarDeclaration target
+    Call name vals
+      -- Check that a function exists with the given name
+     -> do
+      fns <- gets functions
+      let maybeFn = M.lookup name fns
+      when (isNothing maybeFn) $ throwError $ UndefinedSymbol name
+      let (Just fn) = maybeFn
+      args <- mapM checkExpr vals
+      -- Ensure the expressions provided match the parameter
+      -- types, and we have the correct amount
+      when (length args /= length (params fn)) $
+        throwError $
+        InvalidArgumentCount
+          {required = length args, provided = length $ params fn}
+      forM_ (zip (map fst args) (map fst $ params fn)) $ \(t1, t2) ->
+        unless (t1 == t2) $ throwError $ TypeError {expected = [t2], got = t1}
+      pure (returnType fn, SACall name args)
     NoExpr -> pure (TyVoid, SANoExpr)
 
 checkBinaryOp :: Expr -> Semantic SAExpr
@@ -121,3 +142,11 @@ tryCreateVar name t = do
   modify $ \env -> env {vars = M.insert (name, Global) varType vars}
   where
     varType = fromMaybe TyFlexible t
+
+builtInFunctions :: Functions
+builtInFunctions =
+  M.fromList $ map createFn [("printf", TyVoid, [TyString, TyInt])]
+  where
+    createFn (name, ret, params) =
+      (name, Function ret name $ map createParam params)
+    createParam t = (t, SAIdentifier "dummyVar")

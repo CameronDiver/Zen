@@ -30,6 +30,7 @@ data SAExpr'
   | SAIdentifier Text
   | SAVarDeclaration SAExpr
   | SAVarInitialize SAExpr SAExpr
+  | SACall Text [SAExpr]
   | SANoExpr
   deriving (Show, Eq)
 
@@ -45,6 +46,13 @@ data VarScope
   = Global
   | Local
   deriving (Show, Eq, Ord)
+
+data Function
+  = Function
+      { returnType :: Type
+      , name :: Text
+      , params :: [SAExpr]
+      }
 
 isNumeric :: Type -> Bool
 isNumeric t =
