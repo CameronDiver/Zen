@@ -6,6 +6,7 @@ steps:
     image: fpco/stack-build:lts
     commands:
       - apt-get update && apt-get install -y clang
+      - stack build -j1
       - stack build -j1 --test
     volumes:
       - name: cache
