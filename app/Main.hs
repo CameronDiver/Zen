@@ -4,16 +4,11 @@ import           Control.Monad
 import           Data.String.Conversions
 import qualified Data.Text               as T
 import qualified Data.Text.IO            as T
-import           LLVM.AST                (Module)
 import           LLVM.Pretty
 import           Options.Applicative     hiding (action)
 import           System.Exit
 import           Text.Megaparsec.Error   (errorBundlePretty)
 import           Text.Pretty.Simple
-
-import           System.IO
-import           System.IO.Temp
-import           System.Process
 
 import           Language.Wind
 
@@ -82,27 +77,8 @@ runOptions (Options file action _) = do
             AST         -> pPrint ast -- putDoc $ pretty ast <> "\n"
             SemanticAST -> pPrint sast
             LLVM        -> (T.putStrLn . cs . ppllvm) llvm
-            Compile     -> compile llvm $ exePath file
-            Execute     -> execute llvm
+            Compile     -> compileModule llvm $ exePath file
+            Execute     -> executeModule llvm >>= putStr
   where
     exePath path =
       T.unpack $ T.intercalate "." $ init $ T.splitOn "." (T.pack path)
-
--- TODO: Implement this with a JIT
-execute :: Module -> IO ()
-execute m = withSystemTempFile "wind-exe" execute'
-  where
-    execute' fp handle = do
-      hClose handle
-      compile m fp
-      callProcess fp []
-
-compile :: Module -> FilePath -> IO ()
-compile m exePath = withSystemTempFile "output.ll" compile'
-  where
-    compile' fp handle = do
-      T.hPutStrLn handle (cs $ ppllvm m)
-      hClose handle
-      let exe = "clang"
-      let args = ["-Wno-override-module", "-lm", fp, "-o", exePath]
-      callProcess exe args

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d3b427ea900acda5c9231eff6310d61670eceb6f86638ff859b7a93d1700e303
+-- hash: 88d6b6a45c64dd5603a64e3621dee62c2b2dd24934103b1c6df515fc2e243ff7
 
 name:           wind
 version:        0.1.0.0
@@ -47,12 +47,16 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
+    , llvm-hs-pretty
     , llvm-hs-pure
     , megaparsec
     , mtl
     , parser-combinators
     , prettyprinter
+    , process
     , string-conversions
+    , temporary
     , text
   default-language: Haskell2010
 
@@ -66,16 +70,13 @@ executable wind-exe
   ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , directory
     , llvm-hs-pretty
     , llvm-hs-pure
     , megaparsec
     , optparse-applicative
     , pretty-simple
     , prettyprinter
-    , process
     , string-conversions
-    , temporary
     , text
     , wind
   default-language: Haskell2010
@@ -91,10 +92,15 @@ test-suite wind-test
   ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , filepath
+    , llvm-hs-pretty
     , llvm-hs-pure
     , megaparsec
     , prettyprinter
     , string-conversions
+    , tasty
+    , tasty-golden
+    , tasty-hunit
     , text
     , wind
   default-language: Haskell2010
