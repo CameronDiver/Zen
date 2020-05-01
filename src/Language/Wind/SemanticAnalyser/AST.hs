@@ -10,7 +10,7 @@ import           Language.Wind.AST
 -- initialized
 data Type
   = TyInt
-  | TyFloat
+  | TyDouble
   | TyString
   | TyChar
   | TyObject
@@ -23,6 +23,7 @@ type SAExpr = (Type, SAExpr')
 
 data SAExpr'
   = SALiteral Int
+  | SAFloatLiteral Double
   | SAStringLiteral Text
   | SACharLiteral Int
   | SABinaryOp Op SAExpr SAExpr
@@ -57,7 +58,7 @@ data Function
 isNumeric :: Type -> Bool
 isNumeric t =
   case t of
-    TyInt   -> True
-    TyFloat -> True
-    TyChar  -> True
-    _       -> False
+    TyInt    -> True
+    TyDouble -> True
+    TyChar   -> True
+    _        -> False

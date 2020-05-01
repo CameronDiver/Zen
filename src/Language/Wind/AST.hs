@@ -15,6 +15,7 @@ data Expr
   = Literal Int
   | StringLiteral Text
   | CharLiteral Int
+  | FloatLiteral Double
   | BinaryOp Op Expr Expr
   | Assign Expr Expr
   | Identifier Text
@@ -37,14 +38,17 @@ instance Pretty Op where
 instance Pretty Expr where
   pretty e =
     case e of
-      Literal i           -> pretty i
-      StringLiteral s     -> dquotes $ pretty s
-      CharLiteral c       -> squotes $ pretty c
+      Literal i -> pretty i
+      FloatLiteral f -> pretty f
+      Call c exps ->
+        pretty c <+> concatWith (\x y -> x <> ", " <> y) (map pretty exps)
+      StringLiteral s -> dquotes $ pretty s
+      CharLiteral c -> squotes $ pretty c
       BinaryOp op lhs rhs -> hsep [pretty lhs, pretty op, pretty rhs]
-      Assign lhs rhs      -> pretty lhs <+> "=" <+> pretty rhs
-      Identifier i        -> pretty i
-      NoExpr              -> mempty
-      VarDeclaration n    -> "let " <> pretty n <> semi
+      Assign lhs rhs -> pretty lhs <+> "=" <+> pretty rhs
+      Identifier i -> pretty i
+      NoExpr -> mempty
+      VarDeclaration n -> "let " <> pretty n <> semi
 
 instance Pretty Statement where
   pretty s =

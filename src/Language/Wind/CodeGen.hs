@@ -5,6 +5,7 @@ module Language.Wind.CodeGen
 import           Control.Monad.State
 
 import qualified LLVM.AST                           as AST
+import qualified LLVM.AST.Type                      as AST
 import qualified LLVM.AST.Typed                     as AST
 import qualified LLVM.IRBuilder.Constant            as L
 import qualified LLVM.IRBuilder.Instruction         as L
@@ -33,10 +34,13 @@ codegenProgram prg =
     codegenMain prg codegenStatement
 
 emitBuiltins :: LLVM ()
-emitBuiltins =
+emitBuiltins = do
   forM_ builtinFunctions $ \(name, retT, paramTs) -> do
     func <- L.extern (AST.mkName $ cs name) paramTs retT
     registerOperand name func
+  -- Also add the special case printf function
+  printf <- L.externVarArgs (AST.mkName "printf") [stringPointer] AST.i32
+  registerOperand "printf" printf
 
 codegenStatement :: SAStatement -> Codegen ()
 codegenStatement stmt =
@@ -46,6 +50,7 @@ codegenStatement stmt =
 codegenExpr :: SAExpr -> Codegen AST.Operand
 codegenExpr (TyInt, SALiteral i) = pure $ L.int32 (fromIntegral i)
 codegenExpr (TyChar, SACharLiteral c) = pure $ L.int8 (fromIntegral c)
+codegenExpr (TyDouble, SAFloatLiteral f) = pure $ L.double f
 codegenExpr (_, SABinaryOp op lhs rhs) = do
   rhs' <- codegenExpr rhs
   lhs' <- codegenExpr lhs
@@ -53,7 +58,7 @@ codegenExpr (_, SABinaryOp op lhs rhs) = do
     Add ->
       case (fst lhs, fst rhs) of
         (TyInt, TyInt) -> L.add lhs' rhs'
-        (TyFloat, TyFloat) -> L.fadd lhs' rhs'
+        (TyDouble, TyDouble) -> L.fadd lhs' rhs'
         ty -> traceShow ty $ error "Not sure how to add values"
 codegenExpr (TyString, SAStringLiteral s) = do
   strs <- gets strings

@@ -2,6 +2,7 @@ module Language.Wind.CodeGen.Util
   ( registerOperand
   , builtinFunctions
   , typeToLLVMType
+  , stringPointer
   ) where
 
 import           Control.Monad.State
@@ -23,16 +24,20 @@ registerOperand :: MonadState Env m => Text -> AST.Operand -> m ()
 registerOperand name op =
   modify $ \env -> env {operands = M.insert name op (operands env)}
 
+-- printf is handled as a special case at the moment
 builtinFunctions :: [(Text, AST.Type, [AST.Type])]
-builtinFunctions = [("printf", AST.void, [AST.ptr AST.i8, AST.i32])]
+builtinFunctions = [] --[("printf", AST.void, [AST.ptr AST.i8, AST.i32])]
+
+stringPointer :: AST.Type
+stringPointer = AST.ptr AST.i8
 
 typeToLLVMType :: MonadState Env m => Type -> m AST.Type
 typeToLLVMType t =
   case t of
     TyInt    -> pure AST.i32
-    TyFloat  -> pure AST.double
+    TyDouble -> pure AST.double
     TyChar   -> pure AST.i8
-    TyString -> pure $ AST.ptr AST.i8
+    TyString -> pure stringPointer
 
 instance ConvertibleStrings Text ShortByteString where
   convertString = fromString . T.unpack

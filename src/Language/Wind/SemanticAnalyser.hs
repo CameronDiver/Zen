@@ -43,6 +43,7 @@ checkExpr expr =
     Literal i -> pure (TyInt, SALiteral i)
     StringLiteral t -> pure (TyString, SAStringLiteral t)
     CharLiteral c -> pure (TyChar, SACharLiteral c)
+    FloatLiteral f -> pure (TyDouble, SAFloatLiteral f)
     -- For variables, let's ensure that it has been created
     -- before we reference it
     Identifier sym -> do
@@ -76,6 +77,15 @@ checkExpr expr =
               pure (eType, SAVarInitialize (eType, SAIdentifier name) e')
             _ -> throwError $ InvalidVarDeclaration target
         _ -> throwError $ InvalidVarDeclaration target
+    -- Special case, we don't yet have variadic functions,
+    -- so let this through
+    Call "printf" vals -> do
+      when (length vals == 0) $
+        throwError $ InvalidArgumentCount 1 (length vals)
+      args <- mapM checkExpr vals
+      let fmt = head args
+      when (fst fmt /= TyString) $ throwError $ TypeError [TyString] (fst fmt)
+      pure (TyVoid, SACall "printf" args)
     Call name vals
       -- Check that a function exists with the given name
      -> do
@@ -104,23 +114,23 @@ checkBinaryOp (BinaryOp op rhs lhs) = do
       let sexpr = SABinaryOp op lhs' rhs'
        in case (t1, t2) of
             (TyInt, TyInt) -> pure (TyInt, sexpr)
-            (TyInt, TyFloat) -> pure (TyFloat, sexpr)
-            (TyFloat, TyInt) -> pure (TyFloat, sexpr)
-            (TyFloat, TyFloat) -> pure (TyFloat, sexpr)
+            (TyInt, TyDouble) -> pure (TyDouble, sexpr)
+            (TyDouble, TyInt) -> pure (TyDouble, sexpr)
+            (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
             (TyInt, TyChar) -> pure (TyChar, sexpr)
             (TyChar, TyInt) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
-            _ -> throwError $ TypeError [TyInt, TyChar, TyFloat] t1
+            _ -> throwError $ TypeError [TyInt, TyChar, TyDouble] t1
     Sub ->
       let sexpr = SABinaryOp op lhs' rhs'
        in case (t1, t2) of
             (TyInt, TyInt) -> pure (TyInt, sexpr)
-            (TyInt, TyFloat) -> pure (TyFloat, sexpr)
-            (TyFloat, TyFloat) -> pure (TyFloat, sexpr)
+            (TyInt, TyDouble) -> pure (TyDouble, sexpr)
+            (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
             (TyChar, TyInt) -> pure (TyChar, sexpr)
             (TyInt, TyChar) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
-            _ -> throwError $ TypeError [TyInt, TyChar, TyFloat] t1
+            _ -> throwError $ TypeError [TyInt, TyChar, TyDouble] t1
 -- TODO: Throw an error
 checkBinaryOp _ = undefined
 
