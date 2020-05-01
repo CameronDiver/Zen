@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 88d6b6a45c64dd5603a64e3621dee62c2b2dd24934103b1c6df515fc2e243ff7
+-- hash: fd1c93380a4ae39ab5fedeef0fb90c17c8fe7ce4df7fba6bf10fac7b6d28546d
 
 name:           wind
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Language.Wind
       Language.Wind.AST
       Language.Wind.CodeGen
+      Language.Wind.CodeGen.BinaryOperation
       Language.Wind.CodeGen.Env
       Language.Wind.CodeGen.Function
       Language.Wind.CodeGen.Util
@@ -43,7 +44,7 @@ library
   hs-source-dirs:
       src
   default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections
-  ghc-options: -Wall -fwarn-incomplete-patterns
+  ghc-options: -Wall -Wno-incomplete-patterns
   build-depends:
       base >=4.7 && <5
     , containers
@@ -67,7 +68,7 @@ executable wind-exe
   hs-source-dirs:
       app
   default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections
-  ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wno-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , llvm-hs-pretty
@@ -89,7 +90,7 @@ test-suite wind-test
   hs-source-dirs:
       test
   default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections
-  ghc-options: -Wall -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wno-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , filepath

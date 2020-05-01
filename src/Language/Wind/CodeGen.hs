@@ -4,27 +4,24 @@ module Language.Wind.CodeGen
 
 import           Control.Monad.State
 
-import qualified LLVM.AST                           as AST
-import qualified LLVM.AST.Type                      as AST
-import qualified LLVM.AST.Typed                     as AST
-import qualified LLVM.IRBuilder.Constant            as L
-import qualified LLVM.IRBuilder.Instruction         as L
-import qualified LLVM.IRBuilder.Module              as L
-import qualified LLVM.IRBuilder.Monad               as L
+import qualified LLVM.AST                              as AST
+import qualified LLVM.AST.Type                         as AST
+import qualified LLVM.AST.Typed                        as AST
+import qualified LLVM.IRBuilder.Constant               as L
+import qualified LLVM.IRBuilder.Instruction            as L
+import qualified LLVM.IRBuilder.Module                 as L
+import qualified LLVM.IRBuilder.Monad                  as L
 
-import qualified Data.Map                           as M
+import qualified Data.Map                              as M
 import           Data.String.Conversions
-import           Debug.Trace                        (traceShow)
+import           Debug.Trace                           (traceShow)
 
 import           Language.Wind.AST
+import           Language.Wind.CodeGen.BinaryOperation
 import           Language.Wind.CodeGen.Env
 import           Language.Wind.CodeGen.Function
 import           Language.Wind.CodeGen.Util
 import           Language.Wind.SemanticAnalyser.AST
-
-type LLVM = L.ModuleBuilderT (State Env)
-
-type Codegen = L.IRBuilderT LLVM
 
 codegenProgram :: SAProgram -> AST.Module
 codegenProgram prg =
@@ -47,6 +44,7 @@ codegenStatement stmt =
   case stmt of
     SAExpr e -> void $ codegenExpr e
 
+-- TODO: Split this into multiple functions/files
 codegenExpr :: SAExpr -> Codegen AST.Operand
 codegenExpr (TyInt, SALiteral i) = pure $ L.int32 (fromIntegral i)
 codegenExpr (TyChar, SACharLiteral c) = pure $ L.int8 (fromIntegral c)
@@ -54,12 +52,7 @@ codegenExpr (TyDouble, SAFloatLiteral f) = pure $ L.double f
 codegenExpr (_, SABinaryOp op lhs rhs) = do
   rhs' <- codegenExpr rhs
   lhs' <- codegenExpr lhs
-  case op of
-    Add ->
-      case (fst lhs, fst rhs) of
-        (TyInt, TyInt) -> L.add lhs' rhs'
-        (TyDouble, TyDouble) -> L.fadd lhs' rhs'
-        ty -> traceShow ty $ error "Not sure how to add values"
+  codegenBinaryOp op (fst lhs) (fst rhs) lhs' rhs'
 codegenExpr (TyString, SAStringLiteral s) = do
   strs <- gets strings
   case M.lookup s strs of

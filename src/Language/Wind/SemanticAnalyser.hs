@@ -106,7 +106,7 @@ checkExpr expr =
     NoExpr -> pure (TyVoid, SANoExpr)
 
 checkBinaryOp :: Expr -> Semantic SAExpr
-checkBinaryOp (BinaryOp op rhs lhs) = do
+checkBinaryOp (BinaryOp op lhs rhs) = do
   lhs'@(t1, _) <- checkExpr lhs
   rhs'@(t2, _) <- checkExpr rhs
   case op of
@@ -127,6 +127,7 @@ checkBinaryOp (BinaryOp op rhs lhs) = do
             (TyInt, TyInt) -> pure (TyInt, sexpr)
             (TyInt, TyDouble) -> pure (TyDouble, sexpr)
             (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
+            (TyDouble, TyInt) -> pure (TyDouble, sexpr)
             (TyChar, TyInt) -> pure (TyChar, sexpr)
             (TyInt, TyChar) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
