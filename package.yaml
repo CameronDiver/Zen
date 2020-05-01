@@ -26,6 +26,7 @@ dependencies:
   - megaparsec
   - string-conversions
   - llvm-hs-pure
+  - llvm-hs-pretty
 
 default-extensions:
   - OverloadedStrings
@@ -44,6 +45,9 @@ library:
     - containers
     - parser-combinators
     - mtl
+    - directory
+    - process
+    - temporary
 
 executables:
   wind-exe:
@@ -57,10 +61,6 @@ executables:
       - wind
       - optparse-applicative
       - pretty-simple
-      - llvm-hs-pretty
-      - directory
-      - process
-      - temporary
 
 tests:
   wind-test:
@@ -72,3 +72,7 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - wind
+      - tasty
+      - tasty-golden
+      - tasty-hunit
+      - filepath
