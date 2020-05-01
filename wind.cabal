@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ee9b58ca55e388ea91692dd45c728039066b879466f345eed47197b19e864e7e
+-- hash: d3b427ea900acda5c9231eff6310d61670eceb6f86638ff859b7a93d1700e303
 
 name:           wind
 version:        0.1.0.0
@@ -75,8 +75,8 @@ executable wind-exe
     , prettyprinter
     , process
     , string-conversions
+    , temporary
     , text
-    , unix
     , wind
   default-language: Haskell2010
 

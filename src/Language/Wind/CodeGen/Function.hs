@@ -7,6 +7,8 @@ import           Control.Monad.State
 
 import qualified LLVM.AST                           as AST
 import qualified LLVM.AST.Type                      as AST
+import qualified LLVM.IRBuilder.Constant            as L
+import qualified LLVM.IRBuilder.Instruction         as L
 import qualified LLVM.IRBuilder.Module              as L
 import qualified LLVM.IRBuilder.Monad               as L
 
@@ -29,7 +31,7 @@ codegenMain (SAProgram stmts) fn =
   mfix
     (\fun -> do
        registerOperand "main" fun
-       let returnType = AST.void
+       let returnType = AST.i8
        fun <- L.function name [] returnType genBody
        pure fun)
   where
@@ -38,3 +40,4 @@ codegenMain (SAProgram stmts) fn =
     genBody _ = do
       _entry <- L.block `L.named` "entry"
       mapM_ fn stmts
+      L.ret $ L.int8 0

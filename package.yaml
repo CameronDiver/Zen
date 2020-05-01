@@ -59,8 +59,8 @@ executables:
       - pretty-simple
       - llvm-hs-pretty
       - directory
-      - unix
       - process
+      - temporary
 
 tests:
   wind-test:

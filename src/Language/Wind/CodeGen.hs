@@ -5,8 +5,6 @@ module Language.Wind.CodeGen
 import           Control.Monad.State
 
 import qualified LLVM.AST                           as AST
-import qualified LLVM.AST.Constant                  as C
-import qualified LLVM.AST.Type                      as AST
 import qualified LLVM.AST.Typed                     as AST
 import qualified LLVM.IRBuilder.Constant            as L
 import qualified LLVM.IRBuilder.Instruction         as L
@@ -15,8 +13,6 @@ import qualified LLVM.IRBuilder.Monad               as L
 
 import qualified Data.Map                           as M
 import           Data.String.Conversions
-import           Data.Text                          (Text)
-import qualified Data.Text                          as T
 import           Debug.Trace                        (traceShow)
 
 import           Language.Wind.AST
@@ -32,9 +28,9 @@ type Codegen = L.IRBuilderT LLVM
 codegenProgram :: SAProgram -> AST.Module
 codegenProgram prg =
   flip evalState (Env {operands = M.empty, strings = M.empty}) $
-    L.buildModuleT "wind-prog" $ do
-      emitBuiltins
-      codegenMain prg codegenStatement
+  L.buildModuleT "wind-prog" $ do
+    emitBuiltins
+    codegenMain prg codegenStatement
 
 emitBuiltins :: LLVM ()
 emitBuiltins =
@@ -50,7 +46,7 @@ codegenStatement stmt =
 codegenExpr :: SAExpr -> Codegen AST.Operand
 codegenExpr (TyInt, SALiteral i) = pure $ L.int32 (fromIntegral i)
 codegenExpr (TyChar, SACharLiteral c) = pure $ L.int8 (fromIntegral c)
-codegenExpr (t, SABinaryOp op lhs rhs) = do
+codegenExpr (_, SABinaryOp op lhs rhs) = do
   rhs' <- codegenExpr rhs
   lhs' <- codegenExpr lhs
   case op of
