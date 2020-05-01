@@ -4,10 +4,8 @@ import           Control.Monad
 import           Data.String.Conversions
 import qualified Data.Text               as T
 import qualified Data.Text.IO            as T
-import           LLVM.Pretty
 import           Options.Applicative     hiding (action)
 import           System.Exit
-import           Text.Megaparsec.Error   (errorBundlePretty)
 import           Text.Pretty.Simple
 
 import           Language.Wind
@@ -62,7 +60,7 @@ runOptions (Options file action _) = do
   fileContent <- T.readFile file
   let eitherAst = generateAST file fileContent
   case eitherAst of
-    Left e -> putStrLn $ errorBundlePretty e
+    Left e -> putStrLn $ (cs . renderParseError) e
     Right ast -> do
       when
         (action == AST)
@@ -76,7 +74,7 @@ runOptions (Options file action _) = do
           case action of
             AST         -> pPrint ast -- putDoc $ pretty ast <> "\n"
             SemanticAST -> pPrint sast
-            LLVM        -> (T.putStrLn . cs . ppllvm) llvm
+            LLVM        -> T.putStrLn $ renderModule llvm
             Compile     -> compileModule llvm $ exePath file
             Execute     -> executeModule llvm >>= putStr
   where
