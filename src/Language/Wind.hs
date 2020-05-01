@@ -7,7 +7,8 @@ import           Data.Void
 import qualified LLVM.AST                           as AST
 import           LLVM.Pretty
 import           Text.Megaparsec                    (runParser)
-import           Text.Megaparsec.Error              (ParseErrorBundle)
+import           Text.Megaparsec.Error              (ParseErrorBundle,
+                                                     errorBundlePretty)
 
 import           System.IO
 import           System.IO.Temp
@@ -53,3 +54,9 @@ compileModule m exePath = withSystemTempFile "output.ll" compile'
       let exe = "clang"
       let args = ["-Wno-override-module", "-lm", fp, "-o", exePath]
       callProcess exe args
+
+renderModule :: AST.Module -> Text
+renderModule = cs . ppllvm
+
+renderParseError :: ParseErrorBundle Text Void -> Text
+renderParseError = cs . errorBundlePretty
