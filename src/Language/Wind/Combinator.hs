@@ -19,6 +19,8 @@ termP =
   ---------------------
   varDeclP <|>
   ---------------------
+  FloatLiteral <$> try float <|>
+  ---------------------
   Literal <$> int <|>
   ---------------------
   CharLiteral <$> charLiteral <|>
