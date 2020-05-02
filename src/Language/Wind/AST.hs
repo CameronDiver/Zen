@@ -16,7 +16,7 @@ data Expr
   | StringLiteral Text
   | CharLiteral Int
   | FloatLiteral Double
-  | BinaryOp Op Expr Expr
+  | BinaryOp Operator Expr Expr
   | Assign Expr Expr
   | Identifier Text
   | VarDeclaration Expr
@@ -24,12 +24,12 @@ data Expr
   | NoExpr
   deriving (Show, Eq)
 
-data Op
+data Operator
   = Add
   | Sub
   deriving (Show, Eq)
 
-instance Pretty Op where
+instance Pretty Operator where
   pretty op =
     case op of
       Add -> "+"
