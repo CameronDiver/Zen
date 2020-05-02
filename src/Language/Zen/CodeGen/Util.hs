@@ -1,4 +1,4 @@
-module Language.Wind.CodeGen.Util
+module Language.Zen.CodeGen.Util
   ( registerOperand
   , builtinFunctions
   , typeToLLVMType
@@ -6,18 +6,18 @@ module Language.Wind.CodeGen.Util
   ) where
 
 import           Control.Monad.State
-import           Data.Map                           as M
-import           Data.String                        (fromString)
+import           Data.Map                          as M
+import           Data.String                       (fromString)
 import           Data.String.Conversions
-import           Data.Text                          (Text)
-import qualified Data.Text                          as T
+import           Data.Text                         (Text)
+import qualified Data.Text                         as T
 
-import qualified LLVM.AST                           as AST
-import qualified LLVM.AST.Type                      as AST
-import           LLVM.Prelude                       (ShortByteString)
+import qualified LLVM.AST                          as AST
+import qualified LLVM.AST.Type                     as AST
+import           LLVM.Prelude                      (ShortByteString)
 
-import           Language.Wind.CodeGen.Env
-import           Language.Wind.SemanticAnalyser.AST
+import           Language.Zen.CodeGen.Env
+import           Language.Zen.SemanticAnalyser.AST
 
 registerOperand :: MonadState Env m => Text -> AST.Operand -> m ()
 registerOperand name op =

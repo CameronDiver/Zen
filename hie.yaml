@@ -1,8 +1,8 @@
 cradle:
   stack:
     - path: './src'
-      component: wind:lib
+      component: zen:lib
     - path: './app'
-      component: wind:exe:wind-exe
+      component: zen:exe:zen
     - path: './test'
-      component: wind:test:wind-test
+      component: zen:test:zen-test

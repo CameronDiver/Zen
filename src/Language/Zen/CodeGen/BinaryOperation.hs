@@ -1,14 +1,14 @@
-module Language.Wind.CodeGen.BinaryOperation (codegenBinaryOp) where
+module Language.Zen.CodeGen.BinaryOperation (codegenBinaryOp) where
 
 import           Control.Monad
-import           Debug.Trace                        (traceShow)
-import qualified LLVM.AST                           as AST
-import qualified LLVM.IRBuilder.Instruction         as L
+import           Debug.Trace                       (traceShow)
+import qualified LLVM.AST                          as AST
+import qualified LLVM.IRBuilder.Instruction        as L
 
-import           Language.Wind.AST
-import           Language.Wind.CodeGen.Env
-import           Language.Wind.CodeGen.Util
-import           Language.Wind.SemanticAnalyser.AST
+import           Language.Zen.AST
+import           Language.Zen.CodeGen.Env
+import           Language.Zen.CodeGen.Util
+import           Language.Zen.SemanticAnalyser.AST
 
 codegenBinaryOp :: Operator -> Type -> Type -> AST.Operand -> AST.Operand-> Codegen AST.Operand
 codegenBinaryOp op lht rht lhs rhs =

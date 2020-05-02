@@ -1,4 +1,4 @@
-module Language.Wind
+module Language.Zen
   ( generateAST
   , generateLLVM
   , analyseAST
@@ -28,12 +28,12 @@ import           System.IO
 import           System.IO.Temp
 import           System.Process
 
-import           Language.Wind.AST
-import           Language.Wind.CodeGen
-import           Language.Wind.Combinator
-import           Language.Wind.SemanticAnalyser
-import           Language.Wind.SemanticAnalyser.AST
-import           Language.Wind.SemanticAnalyser.Error
+import           Language.Zen.AST
+import           Language.Zen.CodeGen
+import           Language.Zen.Combinator
+import           Language.Zen.SemanticAnalyser
+import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.SemanticAnalyser.Error
 
 generateAST :: String -> Text -> Either (ParseErrorBundle Text Void) Program
 generateAST = runParser programParser
@@ -46,7 +46,7 @@ generateLLVM = codegenProgram
 
 -- TODO: Implement this with a JIT
 executeModule :: AST.Module -> IO String
-executeModule m = withSystemTempFile "wind-exe" execute'
+executeModule m = withSystemTempFile "zen-exe" execute'
  where
   execute' fp handle = do
     hClose handle

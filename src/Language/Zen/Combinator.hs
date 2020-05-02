@@ -1,4 +1,4 @@
-module Language.Wind.Combinator
+module Language.Zen.Combinator
   ( programParser
   ) where
 
@@ -6,8 +6,8 @@ import           Control.Monad.Combinators.Expr as E
 import qualified Data.Text                      as T
 import           Text.Megaparsec
 
-import           Language.Wind.AST
-import           Language.Wind.Lexemes
+import           Language.Zen.AST
+import           Language.Zen.Lexemes
 
 programParser :: Parser Program
 programParser = between sp eof $ Program <$> many statementP

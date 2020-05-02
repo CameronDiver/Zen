@@ -2,15 +2,13 @@ module Main where
 
 import           Control.Monad
 import           Data.String.Conversions
-import qualified Data.Text                             as T
-import qualified Data.Text.IO                          as T
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text
-import           Options.Applicative                   hiding (action)
+import qualified Data.Text               as T
+import qualified Data.Text.IO            as T
+import           Options.Applicative     hiding (action)
 import           System.Exit
 import           Text.Pretty.Simple
 
-import           Language.Wind
+import           Language.Zen
 
 data RunAction
   = AST
@@ -55,7 +53,7 @@ main :: IO ()
 main = runOptions =<< execParser (optionsP `withInfo` infoString)
   where
     withInfo opts desc = info (helper <*> opts) $ progDesc desc
-    infoString = "Compile and execute a wind source file."
+    infoString = "Compile and execute a zen source file."
 
 runOptions :: Options -> IO ()
 runOptions (Options file action _) = do

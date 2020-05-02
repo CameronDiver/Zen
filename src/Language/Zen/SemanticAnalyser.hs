@@ -1,20 +1,20 @@
-module Language.Wind.SemanticAnalyser
+module Language.Zen.SemanticAnalyser
   ( checkProgram
-  , Language.Wind.SemanticAnalyser.Error.SemanticError
+  , Language.Zen.SemanticAnalyser.Error.SemanticError
   ) where
 
 import           Control.Monad.Except
 import           Control.Monad.State
-import           Data.List                            (find)
-import qualified Data.Map                             as M
-import           Data.Maybe                           (fromMaybe, isJust,
-                                                       isNothing)
-import           Data.Text                            (Text)
-import           Debug.Trace                          (traceShow)
+import           Data.List                           (find)
+import qualified Data.Map                            as M
+import           Data.Maybe                          (fromMaybe, isJust,
+                                                      isNothing)
+import           Data.Text                           (Text)
+import           Debug.Trace                         (traceShow)
 
-import           Language.Wind.AST
-import           Language.Wind.SemanticAnalyser.AST
-import           Language.Wind.SemanticAnalyser.Error
+import           Language.Zen.AST
+import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.SemanticAnalyser.Error
 
 -- TODO: Also store whether these values are const
 type Vars = M.Map (Text, VarScope) Type

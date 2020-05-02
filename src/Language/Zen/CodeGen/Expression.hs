@@ -1,18 +1,18 @@
-module Language.Wind.CodeGen.Expression (codegenExpr) where
+module Language.Zen.CodeGen.Expression (codegenExpr) where
 
 import           Control.Monad.State
-import qualified Data.Map                              as M
+import qualified Data.Map                             as M
 import           Data.String.Conversions
-import           Debug.Trace                           (traceShow)
-import qualified LLVM.AST                              as AST
-import qualified LLVM.AST.Typed                        as AST
-import qualified LLVM.IRBuilder.Constant               as L
-import qualified LLVM.IRBuilder.Instruction            as L
+import           Debug.Trace                          (traceShow)
+import qualified LLVM.AST                             as AST
+import qualified LLVM.AST.Typed                       as AST
+import qualified LLVM.IRBuilder.Constant              as L
+import qualified LLVM.IRBuilder.Instruction           as L
 
-import           Language.Wind.CodeGen.BinaryOperation
-import           Language.Wind.CodeGen.Env
-import           Language.Wind.CodeGen.Util
-import           Language.Wind.SemanticAnalyser.AST
+import           Language.Zen.CodeGen.BinaryOperation
+import           Language.Zen.CodeGen.Env
+import           Language.Zen.CodeGen.Util
+import           Language.Zen.SemanticAnalyser.AST
 
 -- TODO: Split this into multiple functions/files
 codegenExpr :: SAExpr -> Codegen AST.Operand

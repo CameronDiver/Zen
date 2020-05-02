@@ -1,10 +1,10 @@
-module Language.Wind.SemanticAnalyser.Error where
+module Language.Zen.SemanticAnalyser.Error where
 
-import           Data.Text                      ( Text )
+import           Data.Text                         (Text)
 
 import           Data.Text.Prettyprint.Doc
-import           Language.Wind.AST
-import           Language.Wind.SemanticAnalyser.AST
+import           Language.Zen.AST
+import           Language.Zen.SemanticAnalyser.AST
 
 type Name = Text
 
