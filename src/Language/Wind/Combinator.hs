@@ -20,6 +20,8 @@ termP =
   ---------------------
   varDeclP <|>
   ---------------------
+  BooleanLiteral <$> location <*> boolean <|>
+  ---------------------
   FloatLiteral <$> location <*> try float <|>
   ---------------------
   Literal <$> location <*> int <|>

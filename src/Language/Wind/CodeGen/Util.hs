@@ -11,7 +11,6 @@ import           Data.String                        (fromString)
 import           Data.String.Conversions
 import           Data.Text                          (Text)
 import qualified Data.Text                          as T
-import qualified LLVM.IRBuilder.Module              as L
 
 import qualified LLVM.AST                           as AST
 import qualified LLVM.AST.Type                      as AST
@@ -34,10 +33,11 @@ stringPointer = AST.ptr AST.i8
 typeToLLVMType :: MonadState Env m => Type -> m AST.Type
 typeToLLVMType t =
   case t of
-    TyInt    -> pure AST.i32
-    TyDouble -> pure AST.double
-    TyChar   -> pure AST.i8
-    TyString -> pure stringPointer
+    TyInt     -> pure AST.i32
+    TyDouble  -> pure AST.double
+    TyChar    -> pure AST.i8
+    TyString  -> pure stringPointer
+    TyBoolean -> pure AST.i1
 
 instance ConvertibleStrings Text ShortByteString where
   convertString = fromString . T.unpack
