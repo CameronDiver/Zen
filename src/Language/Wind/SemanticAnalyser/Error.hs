@@ -1,7 +1,8 @@
 module Language.Wind.SemanticAnalyser.Error where
 
-import           Data.Text
+import           Data.Text                      ( Text )
 
+import           Data.Text.Prettyprint.Doc
 import           Language.Wind.AST
 import           Language.Wind.SemanticAnalyser.AST
 
@@ -9,23 +10,63 @@ type Name = Text
 
 data SemanticError
   = TypeError
-      { expected :: [Type]
+      { loc :: Location
+      , expected :: [Type]
       , got :: Type
       }
   | UndefinedSymbol
-      { name :: Text
+      { loc :: Location
+      , name :: Text
       }
   | InvalidAssignmentLval
-      { lval :: Expr
+      { loc :: Location
+      , lval :: Expr
       }
   | InvalidVarDeclaration
-      { target :: Expr
+      { loc :: Location
+      , target :: Expr
       }
   | DuplicateVarDeclaration
-      { name :: Text
+      { loc :: Location
+      , name :: Text
       }
   | InvalidArgumentCount
-      { required :: Int
+      { loc :: Location
+      , required :: Int
       , provided :: Int
       }
   deriving (Show)
+
+
+instance Pretty SemanticError where
+  pretty e = case e of
+    UndefinedSymbol loc name ->
+      "Use of undefined symbol" <+> pretty name <> showLoc loc
+    TypeError loc ts t ->
+      "Type mismatch, expected"
+        <+> (commasep $ map pretty ts)
+        <+> "but got"
+        <+> pretty t
+        <>  showLoc loc
+    InvalidAssignmentLval loc lval ->
+      "Cannot assign to expression:" <+> pretty lval <> showLoc loc
+    InvalidVarDeclaration loc target ->
+      "Cannot declare expression as variable:" <+> pretty target <> showLoc loc
+    -- TODO: It would be nice to show the previous
+    -- declaration location
+    DuplicateVarDeclaration loc name ->
+      "Cannot redeclare variable:" <+> pretty name <> showLoc loc
+    InvalidArgumentCount loc req prov ->
+      "Mismatched argument count; required"
+        <+> pretty req
+        <>  ","
+        <+> "but got"
+        <+> pretty prov
+        <>  showLoc loc
+
+showLoc :: Location -> Doc ann
+showLoc (Location fileno filename _) =
+  hardline <+> "at" <+> pretty filename <> ":" <> pretty fileno
+
+commasep :: [Doc ann] -> Doc ann
+commasep = concatWith (\x y -> x <> "," <+> y)
