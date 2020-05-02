@@ -49,7 +49,7 @@ checkExpr expr =
     -- before we reference it
     Identifier loc sym -> do
       vars <- gets vars
-      let foundVars = map (\kind -> M.lookup (sym, kind) vars) [Local, Global]
+      let foundVars = fmap (\kind -> M.lookup (sym, kind) vars) [Local, Global]
       case join $ find isJust foundVars of
         Nothing -> throwError $ UndefinedSymbol loc sym
         Just ty -> pure (ty, SAIdentifier sym)
@@ -81,11 +81,11 @@ checkExpr expr =
     -- Special case, we don't yet have variadic functions,
     -- so let this through
     Call loc "printf" vals -> do
-      when (length vals == 0) $
-        throwError $ InvalidArgumentCount loc 1 (length vals)
+      when (null vals) $ throwError $ InvalidArgumentCount loc 1 (length vals)
       args <- mapM checkExpr vals
       let fmt = head args
-      when (fst fmt /= TyString) $ throwError $ TypeError loc [TyString] (fst fmt)
+      when (fst fmt /= TyString) $
+        throwError $ TypeError loc [TyString] (fst fmt)
       pure (TyVoid, SACall "printf" args)
     Call loc name vals
       -- Check that a function exists with the given name
@@ -98,9 +98,8 @@ checkExpr expr =
       -- Ensure the expressions provided match the parameter
       -- types, and we have the correct amount
       when (length args /= length (params fn)) $
-        throwError $
-        InvalidArgumentCount loc (length args) (length $ params fn)
-      forM_ (zip (map fst args) (map fst $ params fn)) $ \(t1, t2) ->
+        throwError $ InvalidArgumentCount loc (length args) (length $ params fn)
+      forM_ (zip (fmap fst args) (fst <$> params fn)) $ \(t1, t2) ->
         unless (t1 == t2) $ throwError $ TypeError loc [t2] t1
       pure (returnType fn, SACall name args)
     NoExpr -> pure (TyVoid, SANoExpr)
@@ -136,16 +135,21 @@ checkBinaryOp (BinaryOp loc op lhs rhs) = do
 checkBinaryOp _ = undefined
 
 checkStatement :: Statement -> Semantic SAStatement
-checkStatement (Expr e)              = SAExpr <$> checkExpr e
+checkStatement (Expr e) = SAExpr <$> checkExpr e
 checkStatement (If loc predicate iBody eBody) = do
   p <- checkExpr predicate
   -- Make sure we're getting a boolean from the predicate
   -- Add three to the location as it skips the "if " and
   -- points at the predicate
-  assertTypeMatch (loc { locColumn = locColumn loc + 3}) TyBoolean (fst p)
+  assertTypeMatch (loc {locColumn = locColumn loc + 3}) TyBoolean (fst p)
   checkedIfBody <- mapM checkStatement iBody
   checkedElseBody <- mapM checkStatement eBody
   pure (SAIfStatement p checkedIfBody checkedElseBody)
+checkStatement (While loc predicate body) = do
+  p <- checkExpr predicate
+  assertTypeMatch (loc {locColumn = locColumn loc + 6}) TyBoolean (fst p)
+  checkedBody <- mapM checkStatement body
+  pure (SAWhileStatement p checkedBody)
 
 assertTypeMatch :: Location -> Type -> Type -> Semantic ()
 assertTypeMatch l t1 t2 =
@@ -165,8 +169,8 @@ tryCreateVar l name t = do
 
 builtInFunctions :: Functions
 builtInFunctions =
-  M.fromList $ map createFn [("printf", TyVoid, [TyString, TyInt])]
+  M.fromList $ fmap createFn [("printf", TyVoid, [TyString, TyInt])]
   where
     createFn (name, ret, params) =
-      (name, Function ret name $ map createParam params)
+      (name, Function ret name $ fmap createParam params)
     createParam t = (t, SAIdentifier "dummyVar")

@@ -1,4 +1,6 @@
-module Language.Zen.CodeGen.Expression (codegenExpr) where
+module Language.Zen.CodeGen.Expression
+  ( codegenExpr
+  ) where
 
 import           Control.Monad.State
 import qualified Data.Map                             as M
@@ -19,7 +21,12 @@ codegenExpr :: SAExpr -> Codegen AST.Operand
 codegenExpr (TyInt, SALiteral i) = pure $ L.int32 (fromIntegral i)
 codegenExpr (TyChar, SACharLiteral c) = pure $ L.int8 (fromIntegral c)
 codegenExpr (TyDouble, SAFloatLiteral f) = pure $ L.double f
-codegenExpr (TyBoolean, SABooleanLiteral b) = pure $ L.bit (if b then 1 else 0)
+codegenExpr (TyBoolean, SABooleanLiteral b) =
+  pure $
+  L.bit
+    (if b
+       then 1
+       else 0)
 codegenExpr (_, SABinaryOp op lhs rhs) = do
   rhs' <- codegenExpr rhs
   lhs' <- codegenExpr lhs

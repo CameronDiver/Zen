@@ -62,12 +62,12 @@ rword :: Text -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
 
 reservedWords :: [Text]
-reservedWords = ["let", "true", "false", "if"]
+reservedWords = ["let", "true", "false", "if", "while"]
 
 stringLiteral :: Parser Text
 stringLiteral = do
   content <- dquotes $ takeWhileP Nothing (/= '"')
-  pure $ T.pack (read ('"' : cs content ++ "\""))
+  pure $ T.pack (read ('"' : cs content <> "\""))
 
 charLiteral :: Parser Int
 charLiteral =
