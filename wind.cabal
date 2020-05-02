@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f08365c216deb7538e8d7b34379c0884c08051c378d501743fecd18a784b644c
+-- hash: 8b66f0cfde306b8e8b5332243c2cc4d1fb5aff6c139b2257a2ee5fc454faff6c
 
 name:           wind
 version:        0.1.0.0
@@ -32,7 +32,9 @@ library
       Language.Wind.CodeGen
       Language.Wind.CodeGen.BinaryOperation
       Language.Wind.CodeGen.Env
+      Language.Wind.CodeGen.Expression
       Language.Wind.CodeGen.Function
+      Language.Wind.CodeGen.Statement
       Language.Wind.CodeGen.Util
       Language.Wind.Combinator
       Language.Wind.Lexemes
@@ -43,7 +45,7 @@ library
       Paths_wind
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections
+  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
@@ -67,7 +69,7 @@ executable wind-exe
       Paths_wind
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections
+  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -89,7 +91,7 @@ test-suite wind-test
       Paths_wind
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections
+  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5

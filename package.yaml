@@ -34,6 +34,8 @@ default-extensions:
   - FlexibleContexts
   - MultiParamTypeClasses
   - TupleSections
+  - BlockArguments
+  - RecursiveDo
 
 ghc-options:
   - -Wall

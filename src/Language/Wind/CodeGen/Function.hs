@@ -13,11 +13,12 @@ import qualified LLVM.IRBuilder.Module              as L
 import qualified LLVM.IRBuilder.Monad               as L
 
 import           Language.Wind.CodeGen.Env
+import           Language.Wind.CodeGen.Statement
 import           Language.Wind.CodeGen.Util
 import           Language.Wind.SemanticAnalyser.AST
 
-codegenMain :: SAProgram -> (SAStatement -> Codegen ()) -> LLVM ()
-codegenMain (SAProgram stmts) fn =
+codegenMain :: SAProgram -> LLVM ()
+codegenMain (SAProgram stmts) =
   void $
   -- Recursively define and use `fun`, we do this in case a
   -- function calls itself (this isn't a worry with main,
@@ -35,5 +36,5 @@ codegenMain (SAProgram stmts) fn =
     genBody :: [AST.Operand] -> Codegen ()
     genBody _ = do
       _entry <- L.block `L.named` "entry"
-      mapM_ fn stmts
+      mapM_ codegenStatement stmts
       L.ret $ L.int8 0
