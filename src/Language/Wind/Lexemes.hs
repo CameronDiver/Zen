@@ -51,6 +51,13 @@ int = lexeme L.decimal
 float :: Parser Double
 float = lexeme L.float
 
+boolean :: Parser Bool
+boolean = true <|> false
+  where
+    true :: Parser Bool
+    true = symbol "true" >> return True
+    false = symbol "false" >> return False
+
 rword :: Text -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
 

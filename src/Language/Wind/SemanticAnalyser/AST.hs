@@ -14,6 +14,7 @@ data Type
   | TyDouble
   | TyString
   | TyChar
+  | TyBoolean
   | TyObject
   | TyFunction
   | TyFlexible
@@ -27,6 +28,7 @@ data SAExpr'
   | SAFloatLiteral Double
   | SAStringLiteral Text
   | SACharLiteral Int
+  | SABooleanLiteral Bool
   | SABinaryOp Operator SAExpr SAExpr
   | SAAssign SAExpr SAExpr
   | SAIdentifier Text
@@ -74,3 +76,4 @@ instance Pretty Type where
     TyObject   -> "Object"
     TyVoid     -> "Void"
     TyFunction -> "Function"
+    TyBoolean  -> "Boolean"

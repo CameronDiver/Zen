@@ -23,6 +23,10 @@ data Expr
       { exprLoc :: Location
       , strVal :: Text
       }
+  | BooleanLiteral
+      { exprLoc :: Location
+      , boolVal :: Bool
+      }
   | CharLiteral
       { exprLoc :: Location
       , charVal :: Int
@@ -72,30 +76,28 @@ data Location
   deriving (Show, Eq)
 
 instance Pretty Operator where
-  pretty op =
-    case op of
-      Add -> "+"
-      Sub -> "-"
+  pretty op = case op of
+    Add -> "+"
+    Sub -> "-"
 
 instance Pretty Expr where
-  pretty e =
-    case e of
-      Literal _ i -> pretty i
-      FloatLiteral _ f -> pretty f
-      Call _ c exps ->
-        pretty c <+> concatWith (\x y -> x <> ", " <> y) (map pretty exps)
-      StringLiteral _ s -> dquotes $ pretty s
-      CharLiteral _ c -> squotes $ pretty c
-      BinaryOp _ op lhs rhs -> hsep [pretty lhs, pretty op, pretty rhs]
-      Assign _ lhs rhs -> pretty lhs <+> "=" <+> pretty rhs
-      Identifier _ i -> pretty i
-      NoExpr -> mempty
-      VarDeclaration _ n -> "let " <> pretty n <> semi
+  pretty e = case e of
+    Literal      _ i -> pretty i
+    FloatLiteral _ f -> pretty f
+    BooleanLiteral _ b -> pretty b
+    Call _ c exps ->
+      pretty c <+> concatWith (\x y -> x <> ", " <> y) (map pretty exps)
+    StringLiteral _ s     -> dquotes $ pretty s
+    CharLiteral   _ c     -> squotes $ pretty c
+    BinaryOp _ op lhs rhs -> hsep [pretty lhs, pretty op, pretty rhs]
+    Assign _ lhs rhs      -> pretty lhs <+> "=" <+> pretty rhs
+    Identifier _ i        -> pretty i
+    NoExpr                -> mempty
+    VarDeclaration _ n    -> "let " <> pretty n <> semi
 
 instance Pretty Statement where
-  pretty s =
-    case s of
-      Expr e -> pretty e <> semi
+  pretty s = case s of
+    Expr e -> pretty e <> semi
 
 instance Pretty Program where
   pretty (Program statements) = hardsep $ map pretty statements

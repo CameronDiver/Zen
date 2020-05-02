@@ -44,6 +44,7 @@ checkExpr expr =
     StringLiteral _ t -> pure (TyString, SAStringLiteral t)
     CharLiteral _ c -> pure (TyChar, SACharLiteral c)
     FloatLiteral _ f -> pure (TyDouble, SAFloatLiteral f)
+    BooleanLiteral _ b -> pure (TyBoolean, SABooleanLiteral b)
     -- For variables, let's ensure that it has been created
     -- before we reference it
     Identifier loc sym -> do
@@ -53,7 +54,7 @@ checkExpr expr =
         Nothing -> throwError $ UndefinedSymbol loc sym
         Just ty -> pure (ty, SAIdentifier sym)
     b@(BinaryOp _ _ _ _) -> checkBinaryOp b
-    Assign loc lhs rhs -> do
+    Assign _ lhs rhs -> do
       lhs'@(t1, _) <- checkExpr lhs
       rhs'@(t2, _) <- checkExpr rhs
       -- Check the lhs is something we cna assign to
