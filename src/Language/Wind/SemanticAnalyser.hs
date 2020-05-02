@@ -40,73 +40,72 @@ checkProgram program = evalState (runExceptT (checkProgram' program)) baseEnv
 checkExpr :: Expr -> Semantic SAExpr
 checkExpr expr =
   case expr of
-    Literal i -> pure (TyInt, SALiteral i)
-    StringLiteral t -> pure (TyString, SAStringLiteral t)
-    CharLiteral c -> pure (TyChar, SACharLiteral c)
-    FloatLiteral f -> pure (TyDouble, SAFloatLiteral f)
+    Literal _ i -> pure (TyInt, SALiteral i)
+    StringLiteral _ t -> pure (TyString, SAStringLiteral t)
+    CharLiteral _ c -> pure (TyChar, SACharLiteral c)
+    FloatLiteral _ f -> pure (TyDouble, SAFloatLiteral f)
     -- For variables, let's ensure that it has been created
     -- before we reference it
-    Identifier sym -> do
+    Identifier loc sym -> do
       vars <- gets vars
       let foundVars = map (\kind -> M.lookup (sym, kind) vars) [Local, Global]
       case join $ find isJust foundVars of
-        Nothing -> throwError $ UndefinedSymbol sym
+        Nothing -> throwError $ UndefinedSymbol loc sym
         Just ty -> pure (ty, SAIdentifier sym)
-    b@(BinaryOp _ _ _) -> checkBinaryOp b
-    Assign lhs rhs -> do
+    b@(BinaryOp _ _ _ _) -> checkBinaryOp b
+    Assign loc lhs rhs -> do
       lhs'@(t1, _) <- checkExpr lhs
       rhs'@(t2, _) <- checkExpr rhs
       -- Check the lhs is something we cna assign to
       case snd lhs' of
         SAIdentifier _ -> do
-          assertTypeMatch t1 t2
+          assertTypeMatch (exprLoc rhs) t1 t2
           pure (t2, SAAssign lhs' rhs')
-        _ -> throwError $ InvalidAssignmentLval lhs
-    VarDeclaration target ->
+        _ -> throwError $ InvalidAssignmentLval (exprLoc lhs) lhs
+    VarDeclaration loc target ->
       case target of
-        (Identifier name) -> do
-          tryCreateVar name Nothing
+        (Identifier _ name) -> do
+          tryCreateVar loc name Nothing
           pure (TyFlexible, SAVarDeclaration (TyFlexible, SAIdentifier name))
-        (Assign v e)
+        (Assign l' v e)
           -- Ensure that we're assigning to an identifier
          ->
           case v of
-            Identifier name -> do
+            Identifier _ name -> do
               e'@(eType, _) <- checkExpr e
-              tryCreateVar name $ Just eType
+              tryCreateVar loc name $ Just eType
               pure (eType, SAVarInitialize (eType, SAIdentifier name) e')
-            _ -> throwError $ InvalidVarDeclaration target
-        _ -> throwError $ InvalidVarDeclaration target
+            _ -> throwError $ InvalidVarDeclaration l' target
+        _ -> throwError $ InvalidVarDeclaration loc target
     -- Special case, we don't yet have variadic functions,
     -- so let this through
-    Call "printf" vals -> do
+    Call loc "printf" vals -> do
       when (length vals == 0) $
-        throwError $ InvalidArgumentCount 1 (length vals)
+        throwError $ InvalidArgumentCount loc 1 (length vals)
       args <- mapM checkExpr vals
       let fmt = head args
-      when (fst fmt /= TyString) $ throwError $ TypeError [TyString] (fst fmt)
+      when (fst fmt /= TyString) $ throwError $ TypeError loc [TyString] (fst fmt)
       pure (TyVoid, SACall "printf" args)
-    Call name vals
+    Call loc name vals
       -- Check that a function exists with the given name
      -> do
       fns <- gets functions
       let maybeFn = M.lookup name fns
-      when (isNothing maybeFn) $ throwError $ UndefinedSymbol name
+      when (isNothing maybeFn) $ throwError $ UndefinedSymbol loc name
       let (Just fn) = maybeFn
       args <- mapM checkExpr vals
       -- Ensure the expressions provided match the parameter
       -- types, and we have the correct amount
       when (length args /= length (params fn)) $
         throwError $
-        InvalidArgumentCount
-          {required = length args, provided = length $ params fn}
+        InvalidArgumentCount loc (length args) (length $ params fn)
       forM_ (zip (map fst args) (map fst $ params fn)) $ \(t1, t2) ->
-        unless (t1 == t2) $ throwError $ TypeError {expected = [t2], got = t1}
+        unless (t1 == t2) $ throwError $ TypeError loc [t2] t1
       pure (returnType fn, SACall name args)
     NoExpr -> pure (TyVoid, SANoExpr)
 
 checkBinaryOp :: Expr -> Semantic SAExpr
-checkBinaryOp (BinaryOp op lhs rhs) = do
+checkBinaryOp (BinaryOp loc op lhs rhs) = do
   lhs'@(t1, _) <- checkExpr lhs
   rhs'@(t2, _) <- checkExpr rhs
   case op of
@@ -120,7 +119,7 @@ checkBinaryOp (BinaryOp op lhs rhs) = do
             (TyInt, TyChar) -> pure (TyChar, sexpr)
             (TyChar, TyInt) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
-            _ -> throwError $ TypeError [TyInt, TyChar, TyDouble] t1
+            _ -> throwError $ TypeError loc [TyInt, TyChar, TyDouble] t1
     Sub ->
       let sexpr = SABinaryOp op lhs' rhs'
        in case (t1, t2) of
@@ -131,25 +130,25 @@ checkBinaryOp (BinaryOp op lhs rhs) = do
             (TyChar, TyInt) -> pure (TyChar, sexpr)
             (TyInt, TyChar) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
-            _ -> throwError $ TypeError [TyInt, TyChar, TyDouble] t1
+            _ -> throwError $ TypeError loc [TyInt, TyChar, TyDouble] t1
 -- TODO: Throw an error
 checkBinaryOp _ = undefined
 
 checkStatement :: Statement -> Semantic SAStatement
 checkStatement (Expr e) = SAExpr <$> checkExpr e
 
-assertTypeMatch :: Type -> Type -> Semantic ()
-assertTypeMatch t1 t2 =
-  unless (t1 == t2 || t1 == TyFlexible) $ throwError $ TypeError [t1] t2
+assertTypeMatch :: Location -> Type -> Type -> Semantic ()
+assertTypeMatch l t1 t2 =
+  unless (t1 == t2 || t1 == TyFlexible) $ throwError $ TypeError l [t1] t2
 
-tryCreateVar :: Text -> Maybe Type -> Semantic ()
-tryCreateVar name t = do
+tryCreateVar :: Location -> Text -> Maybe Type -> Semantic ()
+tryCreateVar l name t = do
   vars <- gets vars
   -- Add this to the variables
   -- FIXME: Scope is wrong, assuming all
   -- global for now
   when (M.member (name, Global) vars) $
-    throwError $ DuplicateVarDeclaration name
+    throwError $ DuplicateVarDeclaration l name
   modify $ \env -> env {vars = M.insert (name, Global) varType vars}
   where
     varType = fromMaybe TyFlexible t
