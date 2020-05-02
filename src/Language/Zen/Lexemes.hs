@@ -1,4 +1,4 @@
-module Language.Wind.Lexemes where
+module Language.Zen.Lexemes where
 
 import           Control.Monad              (void)
 import           Data.Char                  (ord)

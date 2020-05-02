@@ -8,7 +8,7 @@ import qualified Data.Text.IO            as T
 import           System.FilePath         (replaceExtension, takeBaseName)
 import           Text.Megaparsec.Error   (errorBundlePretty)
 
-import           Language.Wind
+import           Language.Zen
 
 runFile :: FilePath -> IO Text
 runFile infile = do

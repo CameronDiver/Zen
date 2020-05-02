@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8b66f0cfde306b8e8b5332243c2cc4d1fb5aff6c139b2257a2ee5fc454faff6c
+-- hash: ab1424483c237c91fa03f78be60166fa5ce4b76db703fd0d2d691bb6ec525a87
 
-name:           wind
+name:           zen
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/CameronDiver/wind#readme>
-homepage:       https://github.com/CameronDiver/wind#readme
-bug-reports:    https://github.com/CameronDiver/wind/issues
+description:    Please see the README on GitHub at <https://github.com/CameronDiver/zen#readme>
+homepage:       https://github.com/CameronDiver/zen#readme
+bug-reports:    https://github.com/CameronDiver/zen/issues
 author:         Cameron Diver
 maintainer:     cameron@0xcd.dev
 copyright:      2020 Cameron Diver
@@ -23,26 +23,26 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/CameronDiver/wind
+  location: https://github.com/CameronDiver/zen
 
 library
   exposed-modules:
-      Language.Wind
-      Language.Wind.AST
-      Language.Wind.CodeGen
-      Language.Wind.CodeGen.BinaryOperation
-      Language.Wind.CodeGen.Env
-      Language.Wind.CodeGen.Expression
-      Language.Wind.CodeGen.Function
-      Language.Wind.CodeGen.Statement
-      Language.Wind.CodeGen.Util
-      Language.Wind.Combinator
-      Language.Wind.Lexemes
-      Language.Wind.SemanticAnalyser
-      Language.Wind.SemanticAnalyser.AST
-      Language.Wind.SemanticAnalyser.Error
+      Language.Zen
+      Language.Zen.AST
+      Language.Zen.CodeGen
+      Language.Zen.CodeGen.BinaryOperation
+      Language.Zen.CodeGen.Env
+      Language.Zen.CodeGen.Expression
+      Language.Zen.CodeGen.Function
+      Language.Zen.CodeGen.Statement
+      Language.Zen.CodeGen.Util
+      Language.Zen.Combinator
+      Language.Zen.Lexemes
+      Language.Zen.SemanticAnalyser
+      Language.Zen.SemanticAnalyser.AST
+      Language.Zen.SemanticAnalyser.Error
   other-modules:
-      Paths_wind
+      Paths_zen
   hs-source-dirs:
       src
   default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
@@ -63,10 +63,10 @@ library
     , text
   default-language: Haskell2010
 
-executable wind-exe
+executable zen
   main-is: Main.hs
   other-modules:
-      Paths_wind
+      Paths_zen
   hs-source-dirs:
       app
   default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
@@ -81,14 +81,14 @@ executable wind-exe
     , prettyprinter
     , string-conversions
     , text
-    , wind
+    , zen
   default-language: Haskell2010
 
-test-suite wind-test
+test-suite zen-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_wind
+      Paths_zen
   hs-source-dirs:
       test
   default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
@@ -105,5 +105,5 @@ test-suite wind-test
     , tasty-golden
     , tasty-hunit
     , text
-    , wind
+    , zen
   default-language: Haskell2010

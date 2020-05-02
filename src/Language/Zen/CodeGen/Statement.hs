@@ -1,16 +1,16 @@
-module Language.Wind.CodeGen.Statement (codegenStatement) where
+module Language.Zen.CodeGen.Statement (codegenStatement) where
 
 import           Control.Monad
-import           Debug.Trace                        (traceShow)
-import qualified LLVM.AST                           as AST
-import qualified LLVM.IRBuilder.Instruction         as L
-import qualified LLVM.IRBuilder.Monad               as L
+import           Debug.Trace                       (traceShow)
+import qualified LLVM.AST                          as AST
+import qualified LLVM.IRBuilder.Instruction        as L
+import qualified LLVM.IRBuilder.Monad              as L
 
-import           Language.Wind.AST
-import           Language.Wind.CodeGen.Env
-import           Language.Wind.CodeGen.Expression
-import           Language.Wind.CodeGen.Util
-import           Language.Wind.SemanticAnalyser.AST
+import           Language.Zen.AST
+import           Language.Zen.CodeGen.Env
+import           Language.Zen.CodeGen.Expression
+import           Language.Zen.CodeGen.Util
+import           Language.Zen.SemanticAnalyser.AST
 
 codegenStatement :: SAStatement -> Codegen ()
 codegenStatement stmt =

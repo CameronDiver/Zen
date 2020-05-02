@@ -1,3 +1,3 @@
-# Changelog for wind
+# Changelog for Zen
 
 ## Unreleased changes

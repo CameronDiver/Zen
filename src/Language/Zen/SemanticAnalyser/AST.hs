@@ -1,9 +1,9 @@
-module Language.Wind.SemanticAnalyser.AST where
+module Language.Zen.SemanticAnalyser.AST where
 
 import           Data.Text
 import           Data.Text.Prettyprint.Doc
 
-import           Language.Wind.AST
+import           Language.Zen.AST
 
 -- The flexible type means it can be coverted to any other
 -- type, useful for variable declarations which have not

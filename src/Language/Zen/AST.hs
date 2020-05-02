@@ -1,4 +1,4 @@
-module Language.Wind.AST where
+module Language.Zen.AST where
 
 import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc

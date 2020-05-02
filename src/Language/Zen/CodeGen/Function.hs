@@ -1,21 +1,21 @@
-module Language.Wind.CodeGen.Function
+module Language.Zen.CodeGen.Function
   ( codegenMain
   ) where
 
 import           Control.Monad.Fix
 import           Control.Monad.State
 
-import qualified LLVM.AST                           as AST
-import qualified LLVM.AST.Type                      as AST
-import qualified LLVM.IRBuilder.Constant            as L
-import qualified LLVM.IRBuilder.Instruction         as L
-import qualified LLVM.IRBuilder.Module              as L
-import qualified LLVM.IRBuilder.Monad               as L
+import qualified LLVM.AST                          as AST
+import qualified LLVM.AST.Type                     as AST
+import qualified LLVM.IRBuilder.Constant           as L
+import qualified LLVM.IRBuilder.Instruction        as L
+import qualified LLVM.IRBuilder.Module             as L
+import qualified LLVM.IRBuilder.Monad              as L
 
-import           Language.Wind.CodeGen.Env
-import           Language.Wind.CodeGen.Statement
-import           Language.Wind.CodeGen.Util
-import           Language.Wind.SemanticAnalyser.AST
+import           Language.Zen.CodeGen.Env
+import           Language.Zen.CodeGen.Statement
+import           Language.Zen.CodeGen.Util
+import           Language.Zen.SemanticAnalyser.AST
 
 codegenMain :: SAProgram -> LLVM ()
 codegenMain (SAProgram stmts) =
