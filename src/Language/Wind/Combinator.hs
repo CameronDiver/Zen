@@ -3,6 +3,7 @@ module Language.Wind.Combinator
   ) where
 
 import           Control.Monad.Combinators.Expr as E
+import qualified Data.Text                      as T
 import           Text.Megaparsec
 
 import           Language.Wind.AST
@@ -19,15 +20,17 @@ termP =
   ---------------------
   varDeclP <|>
   ---------------------
-  FloatLiteral <$> try float <|>
+  FloatLiteral <$> location <*> try float <|>
   ---------------------
-  Literal <$> int <|>
+  Literal <$> location <*> int <|>
   ---------------------
-  CharLiteral <$> charLiteral <|>
+  CharLiteral <$> location <*> charLiteral <|>
   ---------------------
-  StringLiteral <$> stringLiteral <|>
+  StringLiteral <$> location <*> stringLiteral <|>
   ---------------------
-  Identifier <$> identifier
+  Identifier <$> location <*> identifier
+  where
+    location = posToLocation <$> getSourcePos
 
 exprP :: Parser Expr
 exprP = makeExprParser termP opTable
@@ -35,17 +38,22 @@ exprP = makeExprParser termP opTable
 varDeclP :: Parser Expr
 varDeclP = do
   _ <- rword "let"
-  VarDeclaration <$> exprP
+  location <- posToLocation <$> getSourcePos
+  VarDeclaration location <$> exprP
 
 callP :: Parser Expr
-callP = try (Call <$> identifier <*> parens (exprP `sepBy` comma))
+callP = try (Call <$> (posToLocation <$> getSourcePos ) <*> identifier <*> parens (exprP `sepBy` comma))
 
 statementP :: Parser Statement
 statementP = Expr <$> exprP <* semi
 
 opTable :: [[E.Operator Parser Expr]]
-opTable = [[infixL Add "+", infixL Sub "-"], [InfixR $ Assign <$ symbol "="]]
+opTable = [[infixL Add "+", infixL Sub "-"], [InfixR $ Assign <$> location <* symbol "="]]
   where
-    infixL op sym = InfixL $ BinaryOp op <$ operator sym
+    infixL op sym = InfixL $ BinaryOp <$> location <*> (op <$ operator sym)
     operator sym = lexeme $ try (symbol sym <* notFollowedBy opChar)
     opChar = oneOf ("+-" :: [Char])
+    location = posToLocation <$> getSourcePos
+
+posToLocation :: SourcePos -> Location
+posToLocation (SourcePos sourceName sourceLine sourceCol) = Location (unPos sourceLine) (T.pack sourceName) (unPos sourceCol)

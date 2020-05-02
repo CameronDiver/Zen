@@ -1,6 +1,7 @@
 module Language.Wind.SemanticAnalyser.AST where
 
 import           Data.Text
+import           Data.Text.Prettyprint.Doc
 
 import           Language.Wind.AST
 
@@ -62,3 +63,14 @@ isNumeric t =
     TyDouble -> True
     TyChar   -> True
     _        -> False
+
+instance Pretty Type where
+  pretty t = case t of
+    TyInt      -> "Integer"
+    TyChar     -> "Char"
+    TyDouble   -> "Double"
+    TyFlexible -> "Flexible"
+    TyString   -> "String"
+    TyObject   -> "Object"
+    TyVoid     -> "Void"
+    TyFunction -> "Function"

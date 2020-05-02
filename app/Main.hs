@@ -2,9 +2,11 @@ module Main where
 
 import           Control.Monad
 import           Data.String.Conversions
-import qualified Data.Text               as T
-import qualified Data.Text.IO            as T
-import           Options.Applicative     hiding (action)
+import qualified Data.Text                             as T
+import qualified Data.Text.IO                          as T
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Render.Text
+import           Options.Applicative                   hiding (action)
 import           System.Exit
 import           Text.Pretty.Simple
 
@@ -68,7 +70,7 @@ runOptions (Options file action _) = do
             exitSuccess)
       let eitherSast = analyseAST ast
       case eitherSast of
-        Left err -> print err
+        Left err -> renderSemanticError err >>= T.putStrLn
         Right sast -> do
           let llvm = generateLLVM sast
           case action of
