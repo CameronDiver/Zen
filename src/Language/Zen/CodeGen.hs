@@ -19,7 +19,6 @@ import           Debug.Trace                          (traceShow)
 import           Language.Zen.AST
 import           Language.Zen.SemanticAnalyser.AST
 
-
 import           Language.Zen.CodeGen.BinaryOperation
 import           Language.Zen.CodeGen.Env
 import           Language.Zen.CodeGen.Function

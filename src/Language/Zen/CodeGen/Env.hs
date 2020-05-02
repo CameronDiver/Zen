@@ -1,5 +1,7 @@
 module Language.Zen.CodeGen.Env
-  ( Env(..), LLVM, Codegen
+  ( Env(..)
+  , LLVM
+  , Codegen
   ) where
 
 import           Control.Monad.State
