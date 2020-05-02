@@ -3,7 +3,7 @@ module Language.Zen.AST where
 import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc
 
-data Program =
+newtype Program =
   Program [Statement]
   deriving (Show)
 
@@ -14,6 +14,11 @@ data Statement
       , predicate :: Expr
       , ifBody :: [Statement]
       , elseBody :: [Statement]
+      }
+  | While
+      { stmtLoc :: Location
+      , predicate :: Expr
+      , body :: [Statement]
       }
   deriving (Show)
 
@@ -82,31 +87,35 @@ data Location
   deriving (Show, Eq)
 
 instance Pretty Operator where
-  pretty op = case op of
-    Add -> "+"
-    Sub -> "-"
+  pretty op =
+    case op of
+      Add -> "+"
+      Sub -> "-"
 
 instance Pretty Expr where
-  pretty e = case e of
-    Literal      _ i -> pretty i
-    FloatLiteral _ f -> pretty f
-    BooleanLiteral _ b -> pretty b
-    Call _ c exps ->
-      pretty c <+> concatWith (\x y -> x <> ", " <> y) (map pretty exps)
-    StringLiteral _ s     -> dquotes $ pretty s
-    CharLiteral   _ c     -> squotes $ pretty c
-    BinaryOp _ op lhs rhs -> hsep [pretty lhs, pretty op, pretty rhs]
-    Assign _ lhs rhs      -> pretty lhs <+> "=" <+> pretty rhs
-    Identifier _ i        -> pretty i
-    NoExpr                -> mempty
-    VarDeclaration _ n    -> "let " <> pretty n <> semi
+  pretty e =
+    case e of
+      Literal _ i -> pretty i
+      FloatLiteral _ f -> pretty f
+      BooleanLiteral _ b -> pretty b
+      Call _ c exps ->
+        pretty c <+> concatWith (\x y -> x <> ", " <> y) (fmap pretty exps)
+      StringLiteral _ s -> dquotes $ pretty s
+      CharLiteral _ c -> squotes $ pretty c
+      BinaryOp _ op lhs rhs -> hsep [pretty lhs, pretty op, pretty rhs]
+      Assign _ lhs rhs -> pretty lhs <+> "=" <+> pretty rhs
+      Identifier _ i -> pretty i
+      NoExpr -> mempty
+      VarDeclaration _ n -> "let " <> pretty n <> semi
 
 instance Pretty Statement where
-  pretty s = case s of
-    Expr e -> pretty e <> semi
+  pretty s =
+    case s of
+      Expr e -> pretty e <> semi
+      _      -> pretty $ show s
 
 instance Pretty Program where
-  pretty (Program statements) = hardsep $ map pretty statements
+  pretty (Program statements) = hardsep $ fmap pretty statements
 
 -- Separates many docs with hardlines
 hardsep :: [Doc ann] -> Doc ann

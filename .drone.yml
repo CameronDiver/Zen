@@ -5,7 +5,9 @@ steps:
   - name: stack-test
     image: fpco/stack-build:lts
     commands:
+      - scripts/check-format.sh
       - apt-get update && apt-get install -y clang
+      - curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
       - stack build -j1 --test
     volumes:
       - name: cache

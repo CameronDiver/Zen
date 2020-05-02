@@ -44,26 +44,40 @@ varDeclP = do
   VarDeclaration location <$> exprP
 
 callP :: Parser Expr
-callP = try (Call <$> (posToLocation <$> getSourcePos ) <*> identifier <*> parens (exprP `sepBy` comma))
+callP =
+  try
+    (Call <$> (posToLocation <$> getSourcePos) <*> identifier <*>
+     parens (exprP `sepBy` comma))
 
 statementP :: Parser Statement
-statementP = Expr <$> exprP <* semi <|> ifStatementP
+statementP = Expr <$> exprP <* semi <|> ifStatementP <|> whileStatementP
 
 ifStatementP :: Parser Statement
 ifStatementP = do
   loc <- posToLocation <$> getSourcePos
   predicate <- rword "if" >> exprP
   ifBody <- braces $ many statementP
-  maybeElse <- option [] (rword "else" *> (braces $ many statementP))
+  maybeElse <- option [] (rword "else" *> braces (many statementP))
   pure $ If loc predicate ifBody maybeElse
 
+whileStatementP :: Parser Statement
+whileStatementP = do
+  loc <- posToLocation <$> getSourcePos
+  predicate <- rword "while" >> exprP
+  body <- braces $ many statementP
+  pure $ While loc predicate body
+
 opTable :: [[E.Operator Parser Expr]]
-opTable = [[infixL Add "+", infixL Sub "-"], [InfixR $ Assign <$> location <* symbol "="]]
+opTable =
+  [ [infixL Add "+", infixL Sub "-"]
+  , [InfixR $ Assign <$> location <* symbol "="]
+  ]
   where
     infixL op sym = InfixL $ BinaryOp <$> location <*> (op <$ operator sym)
     operator sym = lexeme $ try (symbol sym <* notFollowedBy opChar)
-    opChar = oneOf ("+-" :: [Char])
+    opChar = oneOf ("+-" :: String)
     location = posToLocation <$> getSourcePos
 
 posToLocation :: SourcePos -> Location
-posToLocation (SourcePos sourceName sourceLine sourceCol) = Location (unPos sourceLine) (T.pack sourceName) (unPos sourceCol)
+posToLocation (SourcePos sourceName sourceLine sourceCol) =
+  Location (unPos sourceLine) (T.pack sourceName) (unPos sourceCol)

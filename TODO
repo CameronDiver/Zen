@@ -1,2 +1,11 @@
 * Type conversion steps should be detected at the semantic
 layer
+
+* When including another module, we go to the AST step only,
+and get the types from there. We assume that any semantic
+errors will be picked up in the imported modules compile
+step. Modules are compiled to object files, and linked as
+usual.
+
+* Make if statements expressions, so they can be used in
+other expressions

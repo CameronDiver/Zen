@@ -45,9 +45,13 @@ data SAStatement
       , ifBody :: [SAStatement]
       , elsebody :: [SAStatement]
       }
+  | SAWhileStatement
+      { predicate :: SAExpr
+      , body :: [SAStatement]
+      }
   deriving (Show)
 
-data SAProgram =
+newtype SAProgram =
   SAProgram [SAStatement]
   deriving (Show)
 
@@ -72,13 +76,14 @@ isNumeric t =
     _        -> False
 
 instance Pretty Type where
-  pretty t = case t of
-    TyInt      -> "Integer"
-    TyChar     -> "Char"
-    TyDouble   -> "Double"
-    TyFlexible -> "Flexible"
-    TyString   -> "String"
-    TyObject   -> "Object"
-    TyVoid     -> "Void"
-    TyFunction -> "Function"
-    TyBoolean  -> "Boolean"
+  pretty t =
+    case t of
+      TyInt      -> "Integer"
+      TyChar     -> "Char"
+      TyDouble   -> "Double"
+      TyFlexible -> "Flexible"
+      TyString   -> "String"
+      TyObject   -> "Object"
+      TyVoid     -> "Void"
+      TyFunction -> "Function"
+      TyBoolean  -> "Boolean"
