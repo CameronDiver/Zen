@@ -38,8 +38,13 @@ data SAExpr'
   | SANoExpr
   deriving (Show, Eq)
 
-data SAStatement =
-  SAExpr SAExpr
+data SAStatement
+  = SAExpr SAExpr
+  | SAIfStatement
+      { predicate :: SAExpr
+      , ifBody :: [SAStatement]
+      , elsebody :: [SAStatement]
+      }
   deriving (Show)
 
 data SAProgram =

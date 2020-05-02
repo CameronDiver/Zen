@@ -136,7 +136,16 @@ checkBinaryOp (BinaryOp loc op lhs rhs) = do
 checkBinaryOp _ = undefined
 
 checkStatement :: Statement -> Semantic SAStatement
-checkStatement (Expr e) = SAExpr <$> checkExpr e
+checkStatement (Expr e)              = SAExpr <$> checkExpr e
+checkStatement (If loc predicate iBody eBody) = do
+  p <- checkExpr predicate
+  -- Make sure we're getting a boolean from the predicate
+  -- Add three to the location as it skips the "if " and
+  -- points at the predicate
+  assertTypeMatch (loc { locColumn = locColumn loc + 3}) TyBoolean (fst p)
+  checkedIfBody <- mapM checkStatement iBody
+  checkedElseBody <- mapM checkStatement eBody
+  pure (SAIfStatement p checkedIfBody checkedElseBody)
 
 assertTypeMatch :: Location -> Type -> Type -> Semantic ()
 assertTypeMatch l t1 t2 =
