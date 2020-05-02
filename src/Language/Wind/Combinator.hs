@@ -47,7 +47,15 @@ callP :: Parser Expr
 callP = try (Call <$> (posToLocation <$> getSourcePos ) <*> identifier <*> parens (exprP `sepBy` comma))
 
 statementP :: Parser Statement
-statementP = Expr <$> exprP <* semi
+statementP = Expr <$> exprP <* semi <|> ifStatementP
+
+ifStatementP :: Parser Statement
+ifStatementP = do
+  loc <- posToLocation <$> getSourcePos
+  predicate <- rword "if" >> exprP
+  ifBody <- braces $ many statementP
+  maybeElse <- option [] (rword "else" *> (braces $ many statementP))
+  pure $ If loc predicate ifBody maybeElse
 
 opTable :: [[E.Operator Parser Expr]]
 opTable = [[infixL Add "+", infixL Sub "-"], [InfixR $ Assign <$> location <* symbol "="]]

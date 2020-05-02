@@ -7,8 +7,14 @@ data Program =
   Program [Statement]
   deriving (Show)
 
-data Statement =
-  Expr Expr
+data Statement
+  = Expr Expr
+  | If
+      { stmtLoc :: Location
+      , predicate :: Expr
+      , ifBody :: [Statement]
+      , elseBody :: [Statement]
+      }
   deriving (Show)
 
 -- We add a Location to every AST node directly into the
