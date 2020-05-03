@@ -148,8 +148,9 @@ checkStatement (If loc predicate iBody eBody) = do
 checkStatement (While loc predicate body) = do
   p <- checkExpr predicate
   assertTypeMatch (loc {locColumn = locColumn loc + 6}) TyBoolean (fst p)
+
   checkedBody <- mapM checkStatement body
-  pure (SAWhileStatement p checkedBody)
+  pure $ SAWhileStatement p checkedBody
 
 assertTypeMatch :: Location -> Type -> Type -> Semantic ()
 assertTypeMatch l t1 t2 =

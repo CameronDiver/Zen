@@ -58,4 +58,9 @@ codegenExpr (_, SACall name exps) = do
   exps' <- mapM (fmap (, []) . codegenExpr) exps
   f <- gets ((M.! name) . operands)
   L.call f exps'
+codegenExpr (_, SAAssign (_, SAIdentifier name) rhs) = do
+  addr <- gets ((M.! name) . operands)
+  value <- codegenExpr rhs
+  L.store addr 0 value
+  pure value
 codegenExpr t = traceShow t $ error "Internal error, unknown expression "

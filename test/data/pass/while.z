@@ -1,0 +1,8 @@
+printf("Starting...\n");
+let a = true;
+let i = 1;
+while a {
+	printf("%i\n", i);
+	i = i + 1;
+	a = false;
+}
