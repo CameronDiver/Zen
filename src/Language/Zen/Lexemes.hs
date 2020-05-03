@@ -46,7 +46,7 @@ equals :: Parser ()
 equals = void $ symbol "="
 
 int :: Parser Int
-int = lexeme L.decimal
+int = L.signed sp $ lexeme L.decimal
 
 float :: Parser Double
 float = lexeme L.float
