@@ -6,14 +6,11 @@ module Language.Zen.CodeGen.Statement
 
 import           Control.Monad
 import           Debug.Trace                       (traceShow)
-import qualified LLVM.AST                          as AST
 import qualified LLVM.IRBuilder.Instruction        as L
 import qualified LLVM.IRBuilder.Monad              as L
 
-import           Language.Zen.AST
 import           Language.Zen.CodeGen.Env
 import           Language.Zen.CodeGen.Expression
-import           Language.Zen.CodeGen.Util
 import           Language.Zen.SemanticAnalyser.AST
 
 codegenStatement :: SAStatement -> Codegen ()
@@ -27,21 +24,37 @@ codegenStatement stmt =
 -- up my editor and formatters to no end) but that gives an
 -- inifinite loop which I was unable to debug successfully
 codegenIfStatement :: SAStatement -> Codegen ()
-codegenIfStatement (SAIfStatement predicate iBody eBody) =
-  mdo bool <- codegenExpr predicate
-      L.condBr bool thenBlock elseBlock
-      thenBlock <- L.block `L.named` "then"
-      mapM_ codegenStatement iBody
-      mkTerminator $ L.br mergeBlock
-      elseBlock <- L.block `L.named` "else"
-      mapM_ codegenStatement eBody
-      mkTerminator $ L.br mergeBlock
-      mergeBlock <- L.block `L.named` "merge"
-      pure ()
-codegenIfStatement _ = error "If statement not passed to generator if statement"
+codegenIfStatement (SAIfStatement predicate iBody eBody) = mdo
+  bool <- codegenExpr predicate
+  L.condBr bool thenBlock elseBlock
+
+  thenBlock <- L.block `L.named` "then"
+  mapM_ codegenStatement iBody
+  mkTerminator $ L.br mergeBlock
+
+  elseBlock <- L.block `L.named` "else"
+  mapM_ codegenStatement eBody
+  mkTerminator $ L.br mergeBlock
+
+  mergeBlock <- L.block `L.named` "merge"
+  pure ()
+codegenIfStatement _ = error "If statement not passed to generator for if"
 
 codegenWhileStatement :: SAStatement -> Codegen ()
-codegenWhileStatement = undefined
+codegenWhileStatement (SAWhileStatement predicate body) = mdo
+
+  start <- codegenExpr predicate
+  L.condBr start whileBlock mergeBlock
+
+  L.br whileBlock
+  whileBlock <- L.block `L.named` "while_body"
+  mapM_ codegenStatement body
+  continue <- codegenExpr predicate
+  mkTerminator $ L.condBr continue whileBlock mergeBlock
+
+  mergeBlock <- L.block `L.named` "merge"
+  pure ()
+codegenWhileStatement _ = error "While statement not passed to generator for while"
 
 mkTerminator :: Codegen () -> Codegen ()
 mkTerminator instr = do

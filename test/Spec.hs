@@ -27,7 +27,7 @@ main = defaultMain =<< goldenTests
 
 goldenTests :: IO TestTree
 goldenTests = do
-  wFiles <- findByExtension [".w"] "test/data/pass"
+  wFiles <- findByExtension [".z"] "test/data/pass"
   return $
     testGroup
       "Compile golden tests"
