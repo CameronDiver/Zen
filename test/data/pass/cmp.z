@@ -1,0 +1,24 @@
+let a = 0;
+while(a < 10) {
+	printf("%i\n", a);
+	a = a + 1;
+}
+while(a > 0) {
+	printf("%i\n", a);
+	a = a - 1;
+}
+while(a != 0) {
+	printf("%i\n", a);
+	a = 0;
+}
+
+a = 1;
+if a >= 2 {
+	printf("incorrect\n");
+} else {
+	printf("correct\n");
+}
+
+if 3.0 < 4.0 {
+	printf("correct\n");
+}

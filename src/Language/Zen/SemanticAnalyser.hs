@@ -107,44 +107,58 @@ checkBinaryOp :: Expr -> Semantic SAExpr
 checkBinaryOp (BinaryOp loc op lhs rhs) = do
   lhs'@(t1, _) <- checkExpr lhs
   rhs'@(t2, _) <- checkExpr rhs
-  let sexpr = SABinaryOp op lhs' rhs' in case op of
-    Add ->
-       case (t1, t2) of
+  let sexpr = SABinaryOp op lhs' rhs'
+   in case op of
+        Add ->
+          case (t1, t2) of
             (TyInt, TyInt) -> pure (TyInt, sexpr)
             (TyInt, TyDouble) -> pure (TyDouble, sexpr)
             (TyDouble, TyInt) -> pure (TyDouble, sexpr)
             (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
-            (TyInt, TyChar) -> pure (TyChar, sexpr)
-            (TyChar, TyInt) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
-            _ -> throwError $ TypeError loc [TyInt, TyChar, TyDouble] t1
-    Sub ->
-      case (t1, t2) of
+            _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
+        Sub ->
+          case (t1, t2) of
             (TyInt, TyInt) -> pure (TyInt, sexpr)
             (TyInt, TyDouble) -> pure (TyDouble, sexpr)
             (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
             (TyDouble, TyInt) -> pure (TyDouble, sexpr)
-            (TyChar, TyInt) -> pure (TyChar, sexpr)
-            (TyInt, TyChar) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
-            _ -> throwError $ TypeError loc [TyInt, TyChar, TyDouble] t1
-    -- No TyChar cases here because I think it's time to get
-    -- rid of the char type
-    Mul ->
-      case (t1, t2) of
-        (TyInt, TyInt) -> pure (TyInt, sexpr)
-        (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
-        (TyInt, TyDouble) -> pure (TyDouble, sexpr)
-        (TyDouble, TyInt) -> pure (TyDouble, sexpr)
-        _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
-    Div ->
-      case (t1, t2) of
-        (TyInt, TyInt)       -> pure (TyInt, sexpr)
-        (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
-        (TyInt, TyDouble)    -> pure (TyDouble, sexpr)
-        (TyDouble, TyInt) -> pure (TyDouble, sexpr)
-        _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
-
+            _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
+        Mul ->
+          case (t1, t2) of
+            (TyInt, TyInt) -> pure (TyInt, sexpr)
+            (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
+            (TyInt, TyDouble) -> pure (TyDouble, sexpr)
+            (TyDouble, TyInt) -> pure (TyDouble, sexpr)
+            _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
+        Div ->
+          case (t1, t2) of
+            (TyInt, TyInt) -> pure (TyInt, sexpr)
+            (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
+            (TyInt, TyDouble) -> pure (TyDouble, sexpr)
+            (TyDouble, TyInt) -> pure (TyDouble, sexpr)
+            _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
+        -- TODO: These should check extra things, as
+        -- currently we can only compare ints and floats
+        Eq -> do
+          checkTypeSameAndNotVoid loc t1 t2
+          pure (TyBoolean, sexpr)
+        NEq -> do
+          checkTypeSameAndNotVoid loc t1 t2
+          pure (TyBoolean, sexpr)
+        Greater -> do
+          checkTypeSameAndNotVoid loc t1 t2
+          pure (TyBoolean, sexpr)
+        GreaterEq -> do
+          checkTypeSameAndNotVoid loc t1 t2
+          pure (TyBoolean, sexpr)
+        Less -> do
+          checkTypeSameAndNotVoid loc t1 t2
+          pure (TyBoolean, sexpr)
+        LessEq -> do
+          checkTypeSameAndNotVoid loc t1 t2
+          pure (TyBoolean, sexpr)
 -- TODO: Throw an error
 checkBinaryOp _ = undefined
 
@@ -162,7 +176,6 @@ checkStatement (If loc predicate iBody eBody) = do
 checkStatement (While loc predicate body) = do
   p <- checkExpr predicate
   assertTypeMatch (loc {locColumn = locColumn loc + 6}) TyBoolean (fst p)
-
   checkedBody <- mapM checkStatement body
   pure $ SAWhileStatement p checkedBody
 
@@ -189,3 +202,8 @@ builtInFunctions =
     createFn (name, ret, params) =
       (name, Function ret name $ fmap createParam params)
     createParam t = (t, SAIdentifier "dummyVar")
+
+checkTypeSameAndNotVoid :: Location -> Type -> Type -> Semantic ()
+checkTypeSameAndNotVoid loc t1 t2 = do
+  assertTypeMatch loc t1 t2
+  when (t1 == TyVoid) $ throwError $ VoidComparisonError loc

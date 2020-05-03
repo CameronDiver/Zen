@@ -78,6 +78,12 @@ data Operator
   | Sub
   | Mul
   | Div
+  | Eq
+  | NEq
+  | Less
+  | Greater
+  | LessEq
+  | GreaterEq
   deriving (Show, Eq)
 
 data Location
@@ -91,10 +97,16 @@ data Location
 instance Pretty Operator where
   pretty op =
     case op of
-      Add -> "+"
-      Sub -> "-"
-      Mul -> "*"
-      Div -> "/"
+      Add       -> "+"
+      Sub       -> "-"
+      Mul       -> "*"
+      Div       -> "/"
+      Eq        -> "=="
+      NEq       -> "!="
+      Less      -> "<"
+      Greater   -> ">"
+      LessEq    -> "<="
+      GreaterEq -> ">="
 
 instance Pretty Expr where
   pretty e =
