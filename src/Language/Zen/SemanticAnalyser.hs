@@ -10,7 +10,6 @@ import qualified Data.Map                            as M
 import           Data.Maybe                          (fromMaybe, isJust,
                                                       isNothing)
 import           Data.Text                           (Text)
-import           Debug.Trace                         (traceShow)
 
 import           Language.Zen.AST
 import           Language.Zen.SemanticAnalyser.AST
@@ -108,10 +107,9 @@ checkBinaryOp :: Expr -> Semantic SAExpr
 checkBinaryOp (BinaryOp loc op lhs rhs) = do
   lhs'@(t1, _) <- checkExpr lhs
   rhs'@(t2, _) <- checkExpr rhs
-  case op of
+  let sexpr = SABinaryOp op lhs' rhs' in case op of
     Add ->
-      let sexpr = SABinaryOp op lhs' rhs'
-       in case (t1, t2) of
+       case (t1, t2) of
             (TyInt, TyInt) -> pure (TyInt, sexpr)
             (TyInt, TyDouble) -> pure (TyDouble, sexpr)
             (TyDouble, TyInt) -> pure (TyDouble, sexpr)
@@ -121,8 +119,7 @@ checkBinaryOp (BinaryOp loc op lhs rhs) = do
             -- FIXME: This error is not true in all cases!
             _ -> throwError $ TypeError loc [TyInt, TyChar, TyDouble] t1
     Sub ->
-      let sexpr = SABinaryOp op lhs' rhs'
-       in case (t1, t2) of
+      case (t1, t2) of
             (TyInt, TyInt) -> pure (TyInt, sexpr)
             (TyInt, TyDouble) -> pure (TyDouble, sexpr)
             (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
@@ -131,6 +128,23 @@ checkBinaryOp (BinaryOp loc op lhs rhs) = do
             (TyInt, TyChar) -> pure (TyChar, sexpr)
             -- FIXME: This error is not true in all cases!
             _ -> throwError $ TypeError loc [TyInt, TyChar, TyDouble] t1
+    -- No TyChar cases here because I think it's time to get
+    -- rid of the char type
+    Mul ->
+      case (t1, t2) of
+        (TyInt, TyInt) -> pure (TyInt, sexpr)
+        (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
+        (TyInt, TyDouble) -> pure (TyDouble, sexpr)
+        (TyDouble, TyInt) -> pure (TyDouble, sexpr)
+        _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
+    Div ->
+      case (t1, t2) of
+        (TyInt, TyInt)       -> pure (TyInt, sexpr)
+        (TyDouble, TyDouble) -> pure (TyDouble, sexpr)
+        (TyInt, TyDouble)    -> pure (TyDouble, sexpr)
+        (TyDouble, TyInt) -> pure (TyDouble, sexpr)
+        _ -> throwError $ TypeError loc [TyInt, TyDouble] t1
+
 -- TODO: Throw an error
 checkBinaryOp _ = undefined
 

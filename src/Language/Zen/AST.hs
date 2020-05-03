@@ -76,6 +76,8 @@ data Expr
 data Operator
   = Add
   | Sub
+  | Mul
+  | Div
   deriving (Show, Eq)
 
 data Location
@@ -91,6 +93,8 @@ instance Pretty Operator where
     case op of
       Add -> "+"
       Sub -> "-"
+      Mul -> "*"
+      Div -> "/"
 
 instance Pretty Expr where
   pretty e =
