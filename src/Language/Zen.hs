@@ -84,5 +84,5 @@ renderSemanticError e = do
 renderSourcefileLocation :: Location -> IO Text
 renderSourcefileLocation (Location lineno file col) = do
   content <- T.readFile $ T.unpack file
-  let line = T.lines content !! (lineno - 1)
-  return $ T.concat [line, "\n", T.pack (replicate (col - 1) ' '), "^"]
+  let l = T.lines content !! (lineno - 1)
+  return $ T.concat [l, "\n", T.pack (replicate (col - 1) ' '), "^"]

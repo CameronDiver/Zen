@@ -5,7 +5,6 @@ module Language.Zen.CodeGen.Statement
   ) where
 
 import           Control.Monad
-import           Debug.Trace                       (traceShow)
 import qualified LLVM.IRBuilder.Instruction        as L
 import qualified LLVM.IRBuilder.Monad              as L
 

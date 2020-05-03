@@ -1,0 +1,6 @@
+let a = 3.0/3.0;
+printf("%.3f\n", a);
+printf("%i\n", 3/2);
+printf("%i\n", 10/2);
+printf("%.3f\n", 10/2.0);
+printf("%.3f\n", 10.0/2);

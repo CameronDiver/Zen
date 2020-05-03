@@ -2,9 +2,6 @@ module Language.Zen.CodeGen.Function
   ( codegenMain
   ) where
 
-import           Control.Monad.Fix
-import           Control.Monad.State
-
 import qualified LLVM.AST                          as AST
 import qualified LLVM.AST.Type                     as AST
 import qualified LLVM.IRBuilder.Constant           as L

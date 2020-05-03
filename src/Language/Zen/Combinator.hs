@@ -69,8 +69,10 @@ whileStatementP = do
 
 opTable :: [[E.Operator Parser Expr]]
 opTable =
-  [ [infixL Add "+", infixL Sub "-"]
-  , [InfixR $ Assign <$> location <* symbol "="]
+  [
+   [infixL Mul "*", infixL Div "/"],
+   [infixL Add "+", infixL Sub "-"],
+   [InfixR $ Assign <$> location <* symbol "="]
   ]
   where
     infixL op sym = InfixL $ BinaryOp <$> location <*> (op <$ operator sym)

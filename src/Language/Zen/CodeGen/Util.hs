@@ -38,6 +38,7 @@ typeToLLVMType t =
     TyChar    -> pure AST.i8
     TyString  -> pure stringPointer
     TyBoolean -> pure AST.i1
+    _         -> error $ "typeToLLVMType not implemented for type " <> show t
 
 instance ConvertibleStrings Text ShortByteString where
   convertString = fromString . T.unpack
