@@ -15,14 +15,15 @@ import           Language.Zen.CodeGen.Util
 import           Language.Zen.SemanticAnalyser.AST
 
 codegenMain :: SAProgram -> LLVM ()
-codegenMain (SAProgram stmts) = mdo
+codegenMain (SAProgram stmts)
   -- Recursively define and use `fun`, we do this in case a
   -- function calls itself (this isn't a worry with main,
   -- but it will be when we have user defined functions)
-  registerOperand "main" fun
-  let returnType = AST.i8
-  fun <- L.function name [] returnType genBody
-  pure ()
+ =
+  mdo registerOperand "main" fun
+      let returnType = AST.i8
+      fun <- L.function name [] returnType genBody
+      pure ()
   where
     name = AST.mkName "main"
     genBody :: [AST.Operand] -> Codegen ()

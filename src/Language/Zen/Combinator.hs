@@ -69,13 +69,21 @@ whileStatementP = do
 
 opTable :: [[E.Operator Parser Expr]]
 opTable =
-  [
-   [infixL Mul "*", infixL Div "/"],
-   [infixL Add "+", infixL Sub "-"],
-   [InfixR $ Assign <$> location <* symbol "="]
+  [ [infixL Mul "*", infixL Div "/"]
+  , [infixL Add "+", infixL Sub "-"]
+  , [ infixL' Eq "=="
+    , infixL' NEq "!="
+    , infixL' LessEq "<="
+    , infixL' GreaterEq ">="
+    , infixL Less "<"
+    , infixL Greater ">"
+    ]
+  , [InfixR $ Assign <$> location <* symbol "="]
   ]
   where
-    infixL op sym = InfixL $ BinaryOp <$> location <*> (op <$ operator sym)
+    infixL op sym = InfixL $ BinaryOp <$> location <*> (op <$ symbol sym)
+    -- Primed infixL' is useful for operators which are prefixes of other operators
+    infixL' op sym = InfixL $ BinaryOp <$> location <*> (op <$ operator sym)
     operator sym = lexeme $ try (symbol sym <* notFollowedBy opChar)
     opChar = oneOf ("+-" :: String)
     location = posToLocation <$> getSourcePos

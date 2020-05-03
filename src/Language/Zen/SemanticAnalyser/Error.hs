@@ -35,6 +35,9 @@ data SemanticError
       , required :: Int
       , provided :: Int
       }
+  | VoidComparisonError
+      { loc :: Location
+      }
   deriving (Show)
 
 instance Pretty SemanticError where
@@ -57,6 +60,7 @@ instance Pretty SemanticError where
       InvalidArgumentCount loc req prov ->
         "Mismatched argument count; required" <+>
         pretty req <> "," <+> "but got" <+> pretty prov <> showLoc loc
+      VoidComparisonError loc -> "Cannot compare void " <> showLoc loc
 
 showLoc :: Location -> Doc ann
 showLoc (Location fileno filename _) =
