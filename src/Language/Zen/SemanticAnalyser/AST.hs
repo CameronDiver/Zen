@@ -60,8 +60,8 @@ data VarScope
   | Local
   deriving (Show, Eq, Ord)
 
-data Function
-  = Function
+data SAFunction
+  = SAFunction
       { returnType :: Type
       , name :: Text
       , params :: [SAExpr]

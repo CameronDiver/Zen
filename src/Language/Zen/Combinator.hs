@@ -50,7 +50,8 @@ callP =
      parens (exprP `sepBy` comma))
 
 statementP :: Parser Statement
-statementP = Expr <$> exprP <* semi <|> ifStatementP <|> whileStatementP
+statementP =
+  Expr <$> exprP <* semi <|> ifStatementP <|> whileStatementP <|> functionP
 
 ifStatementP :: Parser Statement
 ifStatementP = do
@@ -63,9 +64,25 @@ ifStatementP = do
 whileStatementP :: Parser Statement
 whileStatementP = do
   loc <- posToLocation <$> getSourcePos
-  predicate <- rword "while" >> exprP
+  predicate <- rword "while" *> exprP
   body <- braces $ many statementP
   pure $ While loc predicate body
+
+functionP :: Parser Statement
+functionP = do
+  loc <- posToLocation <$> getSourcePos
+  rword "fn"
+  fnName <- identifier
+  fnArgs <- parens $ sepBy functionArgP (symbol ",")
+  returnType <- optional $ symbol "->" *> identifier
+  body <- braces $ many statementP
+  pure $ Function loc fnName fnArgs returnType body
+
+functionArgP :: Parser FnArgument
+functionArgP = do
+  name <- identifier
+  argType <- optional $ symbol ":" *> identifier
+  pure $ FnArgument name argType
 
 opTable :: [[E.Operator Parser Expr]]
 opTable =

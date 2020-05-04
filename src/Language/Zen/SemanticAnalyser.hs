@@ -18,7 +18,7 @@ import           Language.Zen.SemanticAnalyser.Error
 -- TODO: Also store whether these values are const
 type Vars = M.Map (Text, VarScope) Type
 
-type Functions = M.Map Text Function
+type Functions = M.Map Text SAFunction
 
 data Env
   = Env
@@ -200,7 +200,7 @@ builtInFunctions =
   M.fromList $ fmap createFn [("printf", TyVoid, [TyString, TyInt])]
   where
     createFn (name, ret, params) =
-      (name, Function ret name $ fmap createParam params)
+      (name, SAFunction ret name $ fmap createParam params)
     createParam t = (t, SAIdentifier "dummyVar")
 
 checkTypeSameAndNotVoid :: Location -> Type -> Type -> Semantic ()

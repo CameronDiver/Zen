@@ -7,6 +7,13 @@ newtype Program =
   Program [Statement]
   deriving (Show)
 
+data FnArgument
+  = FnArgument
+      { fnArgName :: Text
+      , fnArgType :: Maybe Text
+      }
+  deriving (Show)
+
 data Statement
   = Expr Expr
   | If
@@ -19,6 +26,13 @@ data Statement
       { stmtLoc :: Location
       , predicate :: Expr
       , body :: [Statement]
+      }
+  | Function
+      { stmtLoc :: Location
+      , fnName :: Text
+      , fnArguments :: [FnArgument]
+      , fnReturnType :: Maybe Text
+      , fnBody :: [Statement]
       }
   deriving (Show)
 
