@@ -1,5 +1,6 @@
 import           Test.Tasty              (TestTree, defaultMain, testGroup)
 import           Test.Tasty.Golden       (findByExtension, goldenVsString)
+import           Test.Tasty.HUnit        (assertEqual, testCase)
 
 import           Data.String.Conversions
 import           Data.Text               (Text)
@@ -18,20 +19,45 @@ runFile infile = do
     Left e -> return . cs $ errorBundlePretty e
     Right ast ->
       case analyseAST ast of
-        Left e -> return $ T.pack $ show e
+        Left e -> renderSemanticError e
         Right semanticTree ->
           T.pack <$> executeModule (generateLLVM semanticTree)
+
+runFile' :: FilePath -> IO (Bool, Text)
+runFile' infile = do
+  prog <- T.readFile infile
+  let parseTree = generateAST infile prog
+  case parseTree of
+    Left e -> pure (False, cs $ errorBundlePretty e)
+    Right ast ->
+      case analyseAST ast of
+        Left e -> (False, ) <$> renderSemanticError e
+        Right semanticTree ->
+          (True, ) <$> (T.pack <$> executeModule (generateLLVM semanticTree))
 
 main :: IO ()
 main = defaultMain =<< goldenTests
 
 goldenTests :: IO TestTree
-goldenTests = do
-  wFiles <- findByExtension [".z"] "test/data/pass"
+goldenTests = testGroup "all" <$> sequence [successTests, failTests]
+
+successTests :: IO TestTree
+successTests = do
+  files <- findByExtension [".z"] "test/data/pass"
   return $
     testGroup
-      "Compile golden tests"
-      [ goldenVsString (takeBaseName wFile) outputPath (cs <$> runFile wFile)
-      | wFile <- wFiles
-      , let outputPath = replaceExtension wFile ".golden"
+      "Compile passing golden tests"
+      [ goldenVsString (takeBaseName zFile) outputPath (cs <$> runFile zFile)
+      | zFile <- files
+      , let outputPath = replaceExtension zFile ".golden"
       ]
+
+failTests :: IO TestTree
+failTests = do
+  files <- findByExtension [".z"] "test/data/fail"
+  tests <-
+    sequence [testCase (takeBaseName zFile) <$> failTest zFile | zFile <- files]
+  pure $ testGroup "Compile failing tests" tests
+  where
+    failTest filename =
+      assertEqual "Should fail" <$> (fst <$> runFile' filename) <*> pure False

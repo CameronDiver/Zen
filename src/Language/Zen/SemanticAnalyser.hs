@@ -13,25 +13,15 @@ import           Data.Text                           (Text)
 
 import           Language.Zen.AST
 import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.SemanticAnalyser.Env
 import           Language.Zen.SemanticAnalyser.Error
-
--- TODO: Also store whether these values are const
-type Vars = M.Map (Text, VarScope) Type
-
-type Functions = M.Map Text Function
-
-data Env
-  = Env
-      { vars :: Vars
-      , functions :: Functions
-      }
-
-type Semantic = ExceptT SemanticError (State Env)
+import           Language.Zen.SemanticAnalyser.Scope
+import           Language.Zen.Util
 
 checkProgram :: Program -> Either SemanticError SAProgram
 checkProgram program = evalState (runExceptT (checkProgram' program)) baseEnv
   where
-    baseEnv = Env {vars = M.empty, functions = builtInFunctions}
+    baseEnv = Env {vars = newScopeStack, functions = builtInFunctions}
     checkProgram' (Program statements) = do
       stmts <- mapM checkStatement statements
       pure $ SAProgram stmts
@@ -48,10 +38,10 @@ checkExpr expr =
     -- before we reference it
     Identifier loc sym -> do
       vars <- gets vars
-      let foundVars = fmap (\kind -> M.lookup (sym, kind) vars) [Local, Global]
-      case join $ find isJust foundVars of
-        Nothing -> throwError $ UndefinedSymbol loc sym
-        Just ty -> pure (ty, SAIdentifier sym)
+      let foundVars = findVariable vars sym
+      case foundVars of
+        Nothing     -> throwError $ UndefinedSymbol loc sym
+        Just (ty,_) -> pure (ty, SAIdentifier sym)
     b@(BinaryOp _ _ _ _) -> checkBinaryOp b
     Assign _ lhs rhs -> do
       lhs'@(t1, _) <- checkExpr lhs
@@ -170,13 +160,13 @@ checkStatement (If loc predicate iBody eBody) = do
   -- Add three to the location as it skips the "if " and
   -- points at the predicate
   assertTypeMatch (loc {locColumn = locColumn loc + 3}) TyBoolean (fst p)
-  checkedIfBody <- mapM checkStatement iBody
-  checkedElseBody <- mapM checkStatement eBody
+  checkedIfBody <- checkInScope (Just "ifBody") iBody
+  checkedElseBody <- checkInScope (Just "elseBody") eBody
   pure (SAIfStatement p checkedIfBody checkedElseBody)
 checkStatement (While loc predicate body) = do
   p <- checkExpr predicate
   assertTypeMatch (loc {locColumn = locColumn loc + 6}) TyBoolean (fst p)
-  checkedBody <- mapM checkStatement body
+  checkedBody <- checkInScope (Just "whileBody") body
   pure $ SAWhileStatement p checkedBody
 
 assertTypeMatch :: Location -> Type -> Type -> Semantic ()
@@ -185,13 +175,11 @@ assertTypeMatch l t1 t2 =
 
 tryCreateVar :: Location -> Text -> Maybe Type -> Semantic ()
 tryCreateVar l name t = do
-  vars <- gets vars
-  -- Add this to the variables
-  -- FIXME: Scope is wrong, assuming all
-  -- global for now
-  when (M.member (name, Global) vars) $
-    throwError $ DuplicateVarDeclaration l name
-  modify $ \env -> env {vars = M.insert (name, Global) varType vars}
+  env <- get
+  let vs = vars env
+  let foundVar = findVariable vs name
+  when (isJust foundVar) $ throwError $ DuplicateVarDeclaration l name
+  put env {vars = addVariable vs (varType, name)}
   where
     varType = fromMaybe TyFlexible t
 
@@ -201,9 +189,29 @@ builtInFunctions =
   where
     createFn (name, ret, params) =
       (name, Function ret name $ fmap createParam params)
-    createParam t = (t, SAIdentifier "dummyVar")
+    createParam t = (t, "dummyVar")
 
 checkTypeSameAndNotVoid :: Location -> Type -> Type -> Semantic ()
 checkTypeSameAndNotVoid loc t1 t2 = do
   assertTypeMatch loc t1 t2
   when (t1 == TyVoid) $ throwError $ VoidComparisonError loc
+
+-- checkFunction :: Statement -> Semantic SAStatement
+-- checkFunction (Function loc name args retTy body) = do
+--   when (isNothing retTy) $
+--     throwError $ UnsupportedError loc "Implicit return types for functions"
+--   when (any (isNothing . fst) args) $
+--     UnsupportedError loc "Implicit function paramter types"
+--   bodyStatements <- mapM checkStatement body
+--   -- Check that any return types
+-- checkFunction _ =
+--   throwError $ InternalError "Non-function passed to checkFunction"
+checkInScope :: Maybe Text -> [Statement] -> Semantic [SAStatement]
+checkInScope maybeName stmts = do
+  scope <- gets vars
+  modify \env -> env { vars = pushScope scope $ Scope name [] }
+  checked <- mapM checkStatement stmts
+  modify \env -> env { vars = popScope (vars env)}
+  pure checked
+  where
+    name = fromMaybe "newScope" maybeName

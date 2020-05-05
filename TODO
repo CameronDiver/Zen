@@ -9,3 +9,6 @@ usual.
 
 * Make if statements expressions, so they can be used in
 other expressions
+
+* Store the definition location of a variable, so we can
+point to the previous definition when redefining
