@@ -51,7 +51,8 @@ callP =
 
 statementP :: Parser Statement
 statementP =
-  Expr <$> exprP <* semi <|> ifStatementP <|> whileStatementP <|> functionP
+  (Expr <$> exprP <* semi) <|> functionP <|> ifStatementP <|> whileStatementP <|>
+  returnP
 
 ifStatementP :: Parser Statement
 ifStatementP = do
@@ -78,6 +79,11 @@ functionP = do
   body <- braces $ many statementP
   pure $ Function loc fnName fnArgs returnType body
 
+returnP :: Parser Statement
+returnP =
+  Return <$> (posToLocation <$> getSourcePos) <*>
+  (rword "return" *> exprP <* semi)
+
 functionArgP :: Parser FnArgument
 functionArgP = do
   name <- identifier
@@ -99,7 +105,7 @@ opTable =
   ]
   where
     infixL op sym = InfixL $ BinaryOp <$> location <*> (op <$ symbol sym)
-    -- Primed infixL' is useful for operators which are prefixes of other operators
+  -- Primed infixL' is useful for operators which are prefixes of other operators
     infixL' op sym = InfixL $ BinaryOp <$> location <*> (op <$ operator sym)
     operator sym = lexeme $ try (symbol sym <* notFollowedBy opChar)
     opChar = oneOf ("+-" :: String)

@@ -34,6 +34,10 @@ data Statement
       , fnReturnType :: Maybe Text
       , fnBody :: [Statement]
       }
+  | Return
+      { stmtLoc :: Location
+      , retExpr :: Expr
+      }
   deriving (Show)
 
 -- We add a Location to every AST node directly into the

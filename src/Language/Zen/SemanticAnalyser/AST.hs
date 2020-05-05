@@ -23,6 +23,8 @@ data Type
 
 type SAExpr = (Type, SAExpr')
 
+type SAParam = (Type, Text)
+
 data SAExpr'
   = SALiteral Int
   | SAFloatLiteral Double
@@ -49,6 +51,10 @@ data SAStatement
       { predicate :: SAExpr
       , body :: [SAStatement]
       }
+  | SAFunction FunctionDef
+  | SAReturn
+      { returnExpr :: SAExpr
+      }
   deriving (Show)
 
 newtype SAProgram =
@@ -60,12 +66,13 @@ data VarScope
   | Local
   deriving (Show, Eq, Ord)
 
-data SAFunction
-  = SAFunction
+data FunctionDef
+  = FunctionDef
       { returnType :: Type
       , name :: Text
-      , params :: [SAExpr]
+      , params :: [SAParam]
       }
+  deriving (Show)
 
 isNumeric :: Type -> Bool
 isNumeric t =

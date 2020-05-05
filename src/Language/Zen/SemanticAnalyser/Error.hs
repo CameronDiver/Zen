@@ -38,6 +38,13 @@ data SemanticError
   | VoidComparisonError
       { loc :: Location
       }
+  | UnsupportedError
+      { loc :: Location
+      , feature :: Text
+      }
+  | InternalError
+      { message :: Text
+      }
   deriving (Show)
 
 instance Pretty SemanticError where

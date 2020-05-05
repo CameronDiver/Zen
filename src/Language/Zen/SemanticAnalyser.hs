@@ -18,7 +18,7 @@ import           Language.Zen.SemanticAnalyser.Error
 -- TODO: Also store whether these values are const
 type Vars = M.Map (Text, VarScope) Type
 
-type Functions = M.Map Text SAFunction
+type Functions = M.Map Text FunctionDef
 
 data Env
   = Env
@@ -178,6 +178,8 @@ checkStatement (While loc predicate body) = do
   assertTypeMatch (loc {locColumn = locColumn loc + 6}) TyBoolean (fst p)
   checkedBody <- mapM checkStatement body
   pure $ SAWhileStatement p checkedBody
+checkStatement fn@(Function {}) = checkFunction fn
+checkStatement (Return _ expr) = SAReturn <$> checkExpr expr
 
 assertTypeMatch :: Location -> Type -> Type -> Semantic ()
 assertTypeMatch l t1 t2 =
@@ -200,10 +202,21 @@ builtInFunctions =
   M.fromList $ fmap createFn [("printf", TyVoid, [TyString, TyInt])]
   where
     createFn (name, ret, params) =
-      (name, SAFunction ret name $ fmap createParam params)
-    createParam t = (t, SAIdentifier "dummyVar")
+      (name, FunctionDef ret name $ fmap createParam params)
+    createParam t = (t, "dummyVar")
 
 checkTypeSameAndNotVoid :: Location -> Type -> Type -> Semantic ()
 checkTypeSameAndNotVoid loc t1 t2 = do
   assertTypeMatch loc t1 t2
   when (t1 == TyVoid) $ throwError $ VoidComparisonError loc
+
+checkFunction :: Statement -> Semantic SAStatement
+checkFunction (Function loc name args retTy body) = do
+  when (isNothing retTy) $
+    throwError $ UnsupportedError loc "Implicit return types for functions"
+  when (any (isNothing . fst) args) $
+    UnsupportedError loc "Implicit function paramter types"
+  bodyStatements <- mapM checkStatement body
+
+checkFunction _ =
+  throwError $ InternalError "Non-function passed to checkFunction"
