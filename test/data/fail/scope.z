@@ -1,0 +1,12 @@
+let a = 10;
+
+if a == 10 {
+	let b = 5;
+	while true {
+		printf("%i\n", b);
+		let c = 1;
+	}
+	let a = c;
+}
+
+printf("%i\n", a);

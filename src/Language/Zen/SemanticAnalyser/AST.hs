@@ -64,7 +64,7 @@ data Function
   = Function
       { returnType :: Type
       , name :: Text
-      , params :: [SAExpr]
+      , params :: [(Type, Text)]
       }
 
 isNumeric :: Type -> Bool

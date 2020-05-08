@@ -49,6 +49,7 @@ library:
     - directory
     - process
     - temporary
+    - extra
 
 executables:
   zen:
