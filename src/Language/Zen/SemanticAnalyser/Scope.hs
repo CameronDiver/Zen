@@ -1,10 +1,10 @@
 module Language.Zen.SemanticAnalyser.Scope where
 
-import           Data.List                         (find)
-import           Data.List.Extra                   (firstJust)
-import           Data.Text                         (Text)
+import           Data.List                           (find)
+import           Data.List.Extra                     (firstJust)
+import           Data.Text                           (Text)
 
-import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.SemanticAnalyser.Types
 
 data Scope
   = Scope

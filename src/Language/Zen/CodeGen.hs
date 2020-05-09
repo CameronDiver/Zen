@@ -18,11 +18,11 @@ import           Language.Zen.CodeGen.Function
 import           Language.Zen.CodeGen.Util
 
 codegenProgram :: SAProgram -> AST.Module
-codegenProgram prg =
+codegenProgram (SAProgram fns) =
   flip evalState (Env {operands = M.empty, strings = M.empty}) $
   L.buildModuleT "zen-prog" $ do
     emitBuiltins
-    codegenMain prg
+    mapM codegenFunction fns
 
 emitBuiltins :: LLVM ()
 emitBuiltins = do

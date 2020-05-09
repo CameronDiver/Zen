@@ -1,25 +1,9 @@
 module Language.Zen.SemanticAnalyser.AST where
 
 import           Data.Text
-import           Data.Text.Prettyprint.Doc
 
 import           Language.Zen.AST
-
--- The flexible type means it can be coverted to any other
--- type, useful for variable declarations which have not
--- been provided with a type and also have not been
--- initialized
-data Type
-  = TyInt
-  | TyDouble
-  | TyString
-  | TyChar
-  | TyBoolean
-  | TyObject
-  | TyFunction
-  | TyFlexible
-  | TyVoid
-  deriving (Show, Eq)
+import           Language.Zen.SemanticAnalyser.Types
 
 type SAExpr = (Type, SAExpr')
 
@@ -34,6 +18,7 @@ data SAExpr'
   | SAIdentifier Text
   | SAVarDeclaration SAExpr
   | SAVarInitialize SAExpr SAExpr
+  | SAReturn (Maybe SAExpr)
   | SACall Text [SAExpr]
   | SANoExpr
   deriving (Show, Eq)
@@ -51,8 +36,17 @@ data SAStatement
       }
   deriving (Show)
 
+data SAFunction
+  = SAFunction
+      { name :: Text
+      , args :: [(Type, Text)]
+      , returnT :: Type
+      , body :: [SAStatement]
+      }
+  deriving (Show)
+
 newtype SAProgram =
-  SAProgram [SAStatement]
+  SAProgram [SAFunction]
   deriving (Show)
 
 data VarScope
@@ -60,10 +54,10 @@ data VarScope
   | Local
   deriving (Show, Eq, Ord)
 
-data Function
-  = Function
-      { returnType :: Type
-      , name :: Text
+data FunctionInterface
+  = FunctionInterface
+      { name :: Text
+      , returnType :: Type
       , params :: [(Type, Text)]
       }
 
@@ -74,16 +68,3 @@ isNumeric t =
     TyDouble -> True
     TyChar   -> True
     _        -> False
-
-instance Pretty Type where
-  pretty t =
-    case t of
-      TyInt      -> "Integer"
-      TyChar     -> "Char"
-      TyDouble   -> "Double"
-      TyFlexible -> "Flexible"
-      TyString   -> "String"
-      TyObject   -> "Object"
-      TyVoid     -> "Void"
-      TyFunction -> "Function"
-      TyBoolean  -> "Boolean"

@@ -5,26 +5,91 @@ module Language.Zen.SemanticAnalyser
 
 import           Control.Monad.Except
 import           Control.Monad.State
-import           Data.List                           (find)
+import           Data.List                           (find, partition)
 import qualified Data.Map                            as M
-import           Data.Maybe                          (fromMaybe, isJust,
-                                                      isNothing)
+import           Data.Maybe                          (fromJust, fromMaybe,
+                                                      isJust, isNothing)
 import           Data.Text                           (Text)
 
-import           Language.Zen.AST
-import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.AST                    as AST
+import           Language.Zen.SemanticAnalyser.AST   as SAST
 import           Language.Zen.SemanticAnalyser.Env
 import           Language.Zen.SemanticAnalyser.Error
 import           Language.Zen.SemanticAnalyser.Scope
-import           Language.Zen.Util
+import           Language.Zen.SemanticAnalyser.Types
 
 checkProgram :: Program -> Either SemanticError SAProgram
 checkProgram program = evalState (runExceptT (checkProgram' program)) baseEnv
   where
-    baseEnv = Env {vars = newScopeStack, functions = builtInFunctions}
-    checkProgram' (Program statements) = do
-      stmts <- mapM checkStatement statements
-      pure $ SAProgram stmts
+    baseEnv =
+      Env
+        { vars = newScopeStack
+        , functions = builtInFunctions
+        -- This will be overwritten as soon as we get to the
+        -- first function, but I don't want this to be a
+        -- Maybe and have to constantly check
+        , currentFunction = FunctionInterface "dummy" TyVoid []
+        }
+    checkProgram' :: Program -> Semantic SAProgram
+    checkProgram' (Program entries)
+      -- We want to create an implicit main function if any
+      -- of the statements are top level
+     = do
+      let (ss, fns) = partition isStatement entries
+      let allFns =
+            fmap
+              (\(AST.Fn s) -> s)
+              (if not $ null ss
+                -- Add main to the end, as currently
+                -- functions must have been generated before
+                -- they can be used
+                 then fns <> [generateMain ss]
+                 else fns)
+      mapM_ addFunctionInterface allFns
+      checked <- mapM checkFunction allFns
+      pure $ SAProgram checked
+    isStatement topLevel =
+      case topLevel of
+        (AST.Statement _) -> True
+        _                 -> False
+    -- TODO: Change this janky code (we add a return 0 at
+    -- the end when the user is not implementing main themselves)
+    generateMain stmts =
+      AST.Fn $
+      FunctionDef
+        loc
+        "main"
+        []
+        "int"
+        loc
+        (fmap (\(AST.Statement s) -> s) stmts <>
+         [Expr $ Return loc (Just (Literal loc 0))])
+    loc = Location 0 "" 0
+
+addFunctionInterface :: FunctionDef -> Semantic ()
+addFunctionInterface (FunctionDef _ name args ret retloc _) = do
+  when (isJust unknownType) $ throwError $ UndefinedType argLoc argType
+  when (isNothing returnType) $ throwError $ UndefinedType retloc ret
+  functions <- gets functions
+  modify
+    (\env ->
+       env
+         { functions =
+             M.insert
+               name
+               (FunctionInterface
+                  name
+                  (fromJust returnType)
+                  (certainArgTypes argTypes))
+               functions
+         })
+  where
+    argTypes =
+      zip args $ fmap (\FunctionArg {argType = t} -> typeFromText t) args
+    unknownType = find (\(_, t) -> isNothing t) argTypes
+    certainArgTypes = fmap (\(FunctionArg {name = n}, t) -> (fromJust t, n))
+    (FunctionArg argLoc _ argType) = fst $ fromJust unknownType
+    returnType = typeFromText ret
 
 checkExpr :: Expr -> Semantic SAExpr
 checkExpr expr =
@@ -40,8 +105,8 @@ checkExpr expr =
       vars <- gets vars
       let foundVars = findVariable vars sym
       case foundVars of
-        Nothing     -> throwError $ UndefinedSymbol loc sym
-        Just (ty,_) -> pure (ty, SAIdentifier sym)
+        Nothing      -> throwError $ UndefinedSymbol loc sym
+        Just (ty, _) -> pure (ty, SAIdentifier sym)
     b@(BinaryOp _ _ _ _) -> checkBinaryOp b
     Assign _ lhs rhs -> do
       lhs'@(t1, _) <- checkExpr lhs
@@ -91,6 +156,19 @@ checkExpr expr =
       forM_ (zip (fmap fst args) (fst <$> params fn)) $ \(t1, t2) ->
         unless (t1 == t2) $ throwError $ TypeError loc [t2] t1
       pure (returnType fn, SACall name args)
+    Return loc retExpr -> do
+      curr <- gets currentFunction
+      let currFnReturnType = returnType curr
+      value <- maybe (pure Nothing) (fmap Just . checkExpr) retExpr
+      case value of
+        Just (t, _) -> do
+          unless (t == currFnReturnType) $
+            throwError $ TypeError loc [currFnReturnType] t
+          pure (currFnReturnType, SAReturn value)
+        Nothing -> do
+          unless (currFnReturnType == TyVoid) $
+            throwError $ TypeError loc [currFnReturnType] TyVoid
+          pure (TyVoid, SAReturn Nothing)
     NoExpr -> pure (TyVoid, SANoExpr)
 
 checkBinaryOp :: Expr -> Semantic SAExpr
@@ -160,13 +238,13 @@ checkStatement (If loc predicate iBody eBody) = do
   -- Add three to the location as it skips the "if " and
   -- points at the predicate
   assertTypeMatch (loc {locColumn = locColumn loc + 3}) TyBoolean (fst p)
-  checkedIfBody <- checkInScope (Just "ifBody") iBody
-  checkedElseBody <- checkInScope (Just "elseBody") eBody
+  checkedIfBody <- checkInScope (Just "ifBody") [] iBody
+  checkedElseBody <- checkInScope (Just "elseBody") [] eBody
   pure (SAIfStatement p checkedIfBody checkedElseBody)
 checkStatement (While loc predicate body) = do
   p <- checkExpr predicate
   assertTypeMatch (loc {locColumn = locColumn loc + 6}) TyBoolean (fst p)
-  checkedBody <- checkInScope (Just "whileBody") body
+  checkedBody <- checkInScope (Just "whileBody") [] body
   pure $ SAWhileStatement p checkedBody
 
 assertTypeMatch :: Location -> Type -> Type -> Semantic ()
@@ -177,6 +255,7 @@ tryCreateVar :: Location -> Text -> Maybe Type -> Semantic ()
 tryCreateVar l name t = do
   env <- get
   let vs = vars env
+  -- FIXME: Only error on the latest scope
   let foundVar = findVariable vs name
   when (isJust foundVar) $ throwError $ DuplicateVarDeclaration l name
   put env {vars = addVariable vs (varType, name)}
@@ -188,7 +267,7 @@ builtInFunctions =
   M.fromList $ fmap createFn [("printf", TyVoid, [TyString, TyInt])]
   where
     createFn (name, ret, params) =
-      (name, Function ret name $ fmap createParam params)
+      (name, FunctionInterface name ret $ fmap createParam params)
     createParam t = (t, "dummyVar")
 
 checkTypeSameAndNotVoid :: Location -> Type -> Type -> Semantic ()
@@ -196,22 +275,27 @@ checkTypeSameAndNotVoid loc t1 t2 = do
   assertTypeMatch loc t1 t2
   when (t1 == TyVoid) $ throwError $ VoidComparisonError loc
 
--- checkFunction :: Statement -> Semantic SAStatement
--- checkFunction (Function loc name args retTy body) = do
---   when (isNothing retTy) $
---     throwError $ UnsupportedError loc "Implicit return types for functions"
---   when (any (isNothing . fst) args) $
---     UnsupportedError loc "Implicit function paramter types"
---   bodyStatements <- mapM checkStatement body
---   -- Check that any return types
--- checkFunction _ =
---   throwError $ InternalError "Non-function passed to checkFunction"
-checkInScope :: Maybe Text -> [Statement] -> Semantic [SAStatement]
-checkInScope maybeName stmts = do
+checkFunction :: FunctionDef -> Semantic SAFunction
+checkFunction (FunctionDef _ name args retTy _ body) = do
+  let checkedArgs = fmap makeArg args
+  let returnType = fromJust $ typeFromText retTy
+  -- Set the current function so we can investigate any
+  -- returns in the body
+  modify
+    (\env ->
+       env {currentFunction = FunctionInterface name returnType checkedArgs})
+  bodyStatements <- checkInScope (Just $ name <> " function") checkedArgs body
+  pure $ SAFunction name checkedArgs returnType bodyStatements
+  where
+    makeArg (FunctionArg _ n t) = (fromJust $ typeFromText t, n)
+
+checkInScope ::
+     Maybe Text -> [(Type, Text)] -> [Statement] -> Semantic [SAStatement]
+checkInScope maybeName initVars stmts = do
   scope <- gets vars
-  modify \env -> env { vars = pushScope scope $ Scope name [] }
+  modify (\env -> env {vars = pushScope scope $ Scope name initVars})
   checked <- mapM checkStatement stmts
-  modify \env -> env { vars = popScope (vars env)}
+  modify (\env -> env {vars = popScope (vars env)})
   pure checked
   where
     name = fromMaybe "newScope" maybeName

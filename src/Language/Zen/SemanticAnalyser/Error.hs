@@ -1,10 +1,10 @@
 module Language.Zen.SemanticAnalyser.Error where
 
-import           Data.Text                         (Text)
+import           Data.Text                           (Text)
 
 import           Data.Text.Prettyprint.Doc
 import           Language.Zen.AST
-import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.SemanticAnalyser.Types
 
 type Name = Text
 
@@ -15,6 +15,10 @@ data SemanticError
       , got :: Type
       }
   | UndefinedSymbol
+      { loc :: Location
+      , name :: Text
+      }
+  | UndefinedType
       { loc :: Location
       , name :: Text
       }
@@ -37,6 +41,13 @@ data SemanticError
       }
   | VoidComparisonError
       { loc :: Location
+      }
+  | UnsupportedError
+      { loc :: Location
+      , feature :: Text
+      }
+  | InternalError
+      { msg :: Text
       }
   deriving (Show)
 
@@ -61,6 +72,11 @@ instance Pretty SemanticError where
         "Mismatched argument count; required" <+>
         pretty req <> "," <+> "but got" <+> pretty prov <> showLoc loc
       VoidComparisonError loc -> "Cannot compare void " <> showLoc loc
+      UnsupportedError loc msg ->
+        "Unsupported feature: " <> pretty msg <> showLoc loc
+      InternalError msg -> "Internal semantic analyser error: " <> pretty msg
+      UndefinedType loc msg ->
+        "Use of undefined type: " <> pretty msg <> showLoc loc
 
 showLoc :: Location -> Doc ann
 showLoc (Location fileno filename _) =

@@ -62,7 +62,7 @@ rword :: Text -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
 
 reservedWords :: [Text]
-reservedWords = ["let", "true", "false", "if", "while"]
+reservedWords = ["let", "true", "false", "if", "else", "while", "fn", "return"]
 
 stringLiteral :: Parser Text
 stringLiteral = do

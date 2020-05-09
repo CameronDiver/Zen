@@ -14,16 +14,13 @@ import           Language.Zen.SemanticAnalyser.AST
 import           Language.Zen.SemanticAnalyser.Error
 import           Language.Zen.SemanticAnalyser.Scope
 
--- TODO: Also store whether these values are const
-type Functions = M.Map Text Function
+type Functions = M.Map Text FunctionInterface
 
--- Currently we don't really need to store anything
--- for the scope, only that they exist but we may need
--- to change this data type in the future
 data Env
   = Env
       { vars :: ScopeStack
       , functions :: Functions
+      , currentFunction :: FunctionInterface
       }
 
 type Semantic = ExceptT SemanticError (State Env)

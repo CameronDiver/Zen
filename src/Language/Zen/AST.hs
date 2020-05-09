@@ -4,7 +4,31 @@ import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc
 
 newtype Program =
-  Program [Statement]
+  Program [TopLevel]
+  deriving (Show)
+
+data TopLevel
+  = Statement Statement
+  | Fn FunctionDef
+  deriving (Show)
+
+data FunctionArg
+  = FunctionArg
+      { location :: Location
+      , name :: Text
+      , argType :: Text
+      }
+  deriving (Show)
+
+data FunctionDef
+  = FunctionDef
+      { stmtLoc :: Location
+      , name :: Text
+      , args :: [FunctionArg]
+      , returnT :: Text
+      , returnTLoc :: Location
+      , body :: [Statement]
+      }
   deriving (Show)
 
 data Statement
@@ -70,6 +94,10 @@ data Expr
       , nameText :: Text
       , argExprs :: [Expr]
       }
+  | Return
+      { exprLoc :: Location
+      , returnExpr :: Maybe Expr
+      }
   | NoExpr
   deriving (Show, Eq)
 
@@ -123,12 +151,16 @@ instance Pretty Expr where
       Identifier _ i -> pretty i
       NoExpr -> mempty
       VarDeclaration _ n -> "let " <> pretty n <> semi
+      Return _ v -> "return " <> pretty v <> semi
 
 instance Pretty Statement where
   pretty s =
     case s of
       Expr e -> pretty e <> semi
       _      -> pretty $ show s
+
+instance Pretty TopLevel where
+  pretty s = pretty $ show s
 
 instance Pretty Program where
   pretty (Program statements) = hardsep $ fmap pretty statements
