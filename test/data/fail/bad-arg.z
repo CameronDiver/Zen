@@ -1,0 +1,9 @@
+fn add(a: int, b: int) -> int {
+
+	if a == b {
+		printf("Hello!\n");
+	}
+	return a+b;
+}
+
+printf("%i\n", add("string", 1));

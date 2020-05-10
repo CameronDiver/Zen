@@ -1,0 +1,6 @@
+fn add(a: int, b: int) -> int {
+	if a == b {
+		printf("Hello!");
+	}
+	return "asd";
+}

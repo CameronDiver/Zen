@@ -2,16 +2,16 @@ module Language.Zen.CodeGen.BinaryOperation
   ( codegenBinaryOp
   ) where
 
-import           Debug.Trace                       (traceShow)
-import qualified LLVM.AST                          as AST
-import qualified LLVM.AST.FloatingPointPredicate   as FP
-import qualified LLVM.AST.IntegerPredicate         as IP
-import qualified LLVM.IRBuilder.Instruction        as L
+import           Debug.Trace                         (traceShow)
+import qualified LLVM.AST                            as AST
+import qualified LLVM.AST.FloatingPointPredicate     as FP
+import qualified LLVM.AST.IntegerPredicate           as IP
+import qualified LLVM.IRBuilder.Instruction          as L
 
 import           Language.Zen.AST
 import           Language.Zen.CodeGen.Env
 import           Language.Zen.CodeGen.Util
-import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.SemanticAnalyser.Types
 
 codegenBinaryOp ::
      Operator
@@ -90,6 +90,6 @@ codegenBinaryOp op lht rht lhs rhs =
 
 toFloatingPoint :: Type -> AST.Operand -> Codegen AST.Operand
 toFloatingPoint TyInt value = do
-  lltype <- typeToLLVMType TyDouble
+  let lltype = typeToLLVMType TyDouble
   L.sitofp value lltype
 toFloatingPoint t _ = error $ "Can't convert " <> show t <> " to floating point"

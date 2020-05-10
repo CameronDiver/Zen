@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1c373a499f0b760355f0aac50356bff46d4416334d6676066a65ea4257257446
+-- hash: b52ef6c5c7a170e43cf5075ee8291ded98dc75411d0f84b554f763f49f3c1bfa
 
 name:           zen
 version:        0.1.0.0
@@ -43,12 +43,13 @@ library
       Language.Zen.SemanticAnalyser.Env
       Language.Zen.SemanticAnalyser.Error
       Language.Zen.SemanticAnalyser.Scope
+      Language.Zen.SemanticAnalyser.Types
       Language.Zen.Util
   other-modules:
       Paths_zen
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
+  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo DuplicateRecordFields
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
@@ -73,7 +74,7 @@ executable zen
       Paths_zen
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
+  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo DuplicateRecordFields
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -95,7 +96,7 @@ test-suite zen-test
       Paths_zen
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo
+  default-extensions: OverloadedStrings RecordWildCards FlexibleContexts MultiParamTypeClasses TupleSections BlockArguments RecursiveDo DuplicateRecordFields
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5

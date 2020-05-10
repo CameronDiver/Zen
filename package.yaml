@@ -36,6 +36,7 @@ default-extensions:
   - TupleSections
   - BlockArguments
   - RecursiveDo
+  - DuplicateRecordFields
 
 ghc-options:
   - -Wall

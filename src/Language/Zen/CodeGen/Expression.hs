@@ -15,6 +15,7 @@ import           Language.Zen.CodeGen.BinaryOperation
 import           Language.Zen.CodeGen.Env
 import           Language.Zen.CodeGen.Util
 import           Language.Zen.SemanticAnalyser.AST
+import           Language.Zen.SemanticAnalyser.Types
 
 -- TODO: Split this into multiple functions/files
 codegenExpr :: SAExpr -> Codegen AST.Operand
@@ -41,7 +42,7 @@ codegenExpr (TyString, SAStringLiteral s) = do
       pure (AST.ConstantOperand op)
     Just op -> pure op
 codegenExpr (t, SAVarDeclaration (_, SAIdentifier n)) = do
-  ltype <- typeToLLVMType t
+  let ltype = typeToLLVMType t
   addr <- L.alloca ltype Nothing 0
   registerOperand n addr
   pure $ L.int32 0
@@ -63,4 +64,13 @@ codegenExpr (_, SAAssign (_, SAIdentifier name) rhs) = do
   value <- codegenExpr rhs
   L.store addr 0 value
   pure value
+codegenExpr (_, SAReturn value) =
+  case value of
+    (Just v) -> do
+      checked <- codegenExpr v
+      L.ret checked
+      pure checked
+    Nothing -> do
+      L.retVoid
+      pure $ L.int32 0
 codegenExpr t = traceShow t $ error "Internal error, unknown expression "
