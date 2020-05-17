@@ -25,6 +25,8 @@ termP =
   ---------------------
   returnP <|>
   ---------------------
+  indexP <|>
+  ---------------------
   BooleanLiteral <$> location <*> boolean <|>
   ---------------------
   FloatLiteral <$> location <*> try float <|>
@@ -51,6 +53,12 @@ varDeclP = do
 callP :: Parser Expr
 callP =
   try (Call <$> getLocation <*> identifier <*> parens (exprP `sepBy` comma))
+
+indexP :: Parser Expr
+indexP =
+  try
+    (Index <$> getLocation <*> (Identifier <$> getLocation <*> identifier) <*>
+     squares exprP)
 
 returnP :: Parser Expr
 returnP
@@ -94,7 +102,11 @@ argP = do
   name <- identifier
   _ <- symbol ":"
   loc <- getLocation
-  FunctionArg loc name <$> identifier
+  ty <-
+    (do argTy <- squares identifier
+        pure $ T.concat ["[", argTy, "]"]) <|>
+    identifier
+  pure $ FunctionArg loc name ty
 
 opTable :: [[E.Operator Parser Expr]]
 opTable =

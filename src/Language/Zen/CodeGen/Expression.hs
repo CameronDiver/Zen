@@ -49,6 +49,9 @@ codegenExpr (t, SAVarDeclaration (_, SAIdentifier n)) = do
 codegenExpr (_, SAIdentifier name) = do
   addr <- gets ((M.! name) . operands)
   L.load addr 0
+  -- if isWrappedType t
+  --   then pure addr
+  --   else L.load addr 0
 codegenExpr (_, SAVarInitialize (_, SAIdentifier n) expr) = do
   op <- codegenExpr expr
   addr <- L.alloca (AST.typeOf op) Nothing 0
@@ -73,4 +76,9 @@ codegenExpr (_, SAReturn value) =
     Nothing -> do
       L.retVoid
       pure $ L.int32 0
+codegenExpr (_, SAIndex source idx) = do
+  sourceOp <- codegenExpr source
+  idxOp <- codegenExpr idx
+  addr <- L.gep sourceOp [idxOp]
+  L.load addr 0
 codegenExpr t = traceShow t $ error "Internal error, unknown expression "

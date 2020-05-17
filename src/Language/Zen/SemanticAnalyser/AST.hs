@@ -20,6 +20,7 @@ data SAExpr'
   | SAVarInitialize SAExpr SAExpr
   | SAReturn (Maybe SAExpr)
   | SACall Text [SAExpr]
+  | SAIndex SAExpr SAExpr
   | SANoExpr
   deriving (Show, Eq)
 

@@ -3,6 +3,7 @@ module Language.Zen
   , generateLLVM
   , analyseAST
   , executeModule
+  , executeModuleWithArgs
   , compileModule
   , renderModule
   , renderParseError
@@ -45,12 +46,15 @@ generateLLVM = codegenProgram
 
 -- TODO: Implement this with a JIT
 executeModule :: AST.Module -> IO String
-executeModule m = withSystemTempFile "zen-exe" execute'
+executeModule m = executeModuleWithArgs m []
+
+executeModuleWithArgs :: AST.Module -> [String] -> IO String
+executeModuleWithArgs m args = withSystemTempFile "zen-exe" execute'
   where
     execute' fp handle = do
       hClose handle
       compileModule m fp
-      readProcess fp [] []
+      readProcess fp args []
 
 compileModule :: AST.Module -> FilePath -> IO ()
 compileModule m exePath = withSystemTempFile "output.ll" compile'

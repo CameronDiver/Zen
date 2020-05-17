@@ -49,6 +49,10 @@ data SemanticError
   | InternalError
       { msg :: Text
       }
+  | ExpectedWrappedTypeError
+      { loc :: Location
+      , got :: Type
+      }
   deriving (Show)
 
 instance Pretty SemanticError where
@@ -77,6 +81,9 @@ instance Pretty SemanticError where
       InternalError msg -> "Internal semantic analyser error: " <> pretty msg
       UndefinedType loc msg ->
         "Use of undefined type: " <> pretty msg <> showLoc loc
+      ExpectedWrappedTypeError loc got ->
+        "Expecting a wrapped type (i.e. Array) but got" <+>
+        pretty got <> showLoc loc
 
 showLoc :: Location -> Doc ann
 showLoc (Location fileno filename _) =

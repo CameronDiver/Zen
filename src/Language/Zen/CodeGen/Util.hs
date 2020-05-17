@@ -33,13 +33,14 @@ stringPointer = AST.ptr AST.i8
 typeToLLVMType :: Type -> AST.Type
 typeToLLVMType t =
   case t of
-    TyInt     -> AST.i32
-    TyDouble  -> AST.double
-    TyChar    -> AST.i8
-    TyString  -> stringPointer
+    TyInt -> AST.i32
+    TyDouble -> AST.double
+    TyChar -> AST.i8
+    TyString -> stringPointer
     TyBoolean -> AST.i1
-    TyVoid    -> AST.VoidType
-    _         -> error $ "typeToLLVMType not implemented for type " <> show t
+    TyVoid -> AST.VoidType
+    TyArray t' -> AST.ptr (typeToLLVMType t')
+    _ -> error $ "typeToLLVMType not implemented for type " <> show t
 
 instance ConvertibleStrings Text ShortByteString where
   convertString = fromString . T.unpack

@@ -1,6 +1,7 @@
 module Language.Zen.SemanticAnalyser.Types where
 
-import           Data.Text                 (Text)
+import           Data.Maybe                (fromJust, isNothing)
+import           Data.Text                 as T
 import           Data.Text.Prettyprint.Doc
 
 -- The flexible type means it can be coverted to any other
@@ -17,6 +18,7 @@ data Type
   | TyFunction
   | TyFlexible
   | TyVoid
+  | TyArray Type
   deriving (Show, Eq)
 
 instance Pretty Type where
@@ -31,14 +33,37 @@ instance Pretty Type where
       TyVoid     -> "Void"
       TyFunction -> "Function"
       TyBoolean  -> "Boolean"
+      TyArray t' -> "Array of " <> pretty t'
 
 typeFromText :: Text -> Maybe Type
 typeFromText t =
   case t of
-    "int"    -> Just TyInt
-    "char"   -> Just TyChar
+    "int" -> Just TyInt
+    "char" -> Just TyChar
     "double" -> Just TyDouble
     "string" -> Just TyString
-    "void"   -> Just TyVoid
-    "bool"   -> Just TyBoolean
-    _        -> Nothing
+    "void" -> Just TyVoid
+    "bool" -> Just TyBoolean
+    -- FIXME: Clean up this terrible code
+    _ ->
+      if not $ T.null t
+        then do
+          let start = T.head t
+          let end = T.head $ T.reverse t
+          if start == '[' && end == ']'
+            then do
+              let len = T.length t
+              let inner = typeFromText $ T.take (len - 2) $ T.drop 1 t
+              if isNothing inner
+                then Nothing
+                else Just $ TyArray $ fromJust inner
+            else Nothing
+        else Nothing
+
+unwrapType :: Type -> Type
+unwrapType (TyArray t) = t
+unwrapType t           = error $ "Cannot unwrap a non-wrapped type" <> show t
+
+isWrappedType :: Type -> Bool
+isWrappedType (TyArray _) = True
+isWrappedType _           = False

@@ -98,6 +98,11 @@ data Expr
       { exprLoc :: Location
       , returnExpr :: Maybe Expr
       }
+  | Index
+      { exprLoc :: Location
+      , source :: Expr
+      , index :: Expr
+      }
   | NoExpr
   deriving (Show, Eq)
 
@@ -151,6 +156,7 @@ instance Pretty Expr where
       Identifier _ i -> pretty i
       NoExpr -> mempty
       VarDeclaration _ n -> "let " <> pretty n <> semi
+      Index _ n idx -> pretty n <> "[" <> pretty idx <> "]"
       Return _ v -> "return " <> pretty v <> semi
 
 instance Pretty Statement where
