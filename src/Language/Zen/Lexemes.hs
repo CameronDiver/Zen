@@ -36,6 +36,9 @@ dquotes = between (single '"') (single '"')
 squotes :: Parser a -> Parser a
 squotes = between (single '\'') (single '\'')
 
+squares :: Parser a -> Parser a
+squares = between (symbol "[") (symbol "]")
+
 semi :: Parser ()
 semi = void $ symbol ";"
 

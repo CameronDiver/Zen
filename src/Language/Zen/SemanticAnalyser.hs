@@ -169,6 +169,13 @@ checkExpr expr =
           unless (currFnReturnType == TyVoid) $
             throwError $ TypeError loc [currFnReturnType] TyVoid
           pure (TyVoid, SAReturn Nothing)
+    Index loc source idx -> do
+      sourceE <- checkExpr source
+      idxE <- checkExpr idx
+      unless (isWrappedType (fst sourceE)) $
+        throwError $ ExpectedWrappedTypeError loc (fst sourceE)
+      -- FIXME: Check for int idx
+      pure (unwrapType (fst sourceE), SAIndex sourceE idxE)
     NoExpr -> pure (TyVoid, SANoExpr)
 
 checkBinaryOp :: Expr -> Semantic SAExpr
