@@ -3,6 +3,7 @@ module Language.Zen.Combinator
   ) where
 
 import           Control.Monad.Combinators.Expr as E
+import           Data.Maybe                     (isJust)
 import qualified Data.Text                      as T
 import           Text.Megaparsec
 
@@ -13,7 +14,8 @@ programParser :: Parser Program
 programParser = between sp eof $ Program <$> many topLevelParser
 
 topLevelParser :: Parser TopLevel
-topLevelParser = (Statement <$> statementP) <|> (Fn <$> functionP)
+topLevelParser =
+  (Statement <$> statementP) <|> (Fn <$> functionP) <|> (Struct <$> structP)
 
 termP :: Parser Expr
 termP =
@@ -87,9 +89,12 @@ whileStatementP = do
   pure $ While loc predicate body
 
 functionP :: Parser FunctionDef
-functionP = do
+functionP = rword "fn" *> functionP'
+
+functionP' :: Parser FunctionDef
+functionP' = do
   loc <- getLocation
-  name <- rword "fn" *> identifier
+  name <- identifier
   args <- parens (sepBy argP comma)
   _ <- symbol "->"
   rloc <- getLocation
@@ -107,6 +112,21 @@ argP = do
         pure $ T.concat ["[", argTy, "]"]) <|>
     identifier
   pure $ FunctionArg loc name ty
+
+structP :: Parser StructDef
+structP = do
+  _ <- rword "struct"
+  loc <- getLocation
+  name <- identifier
+  fields <- braces $ many structFieldP
+  pure $ StructDef loc name fields
+
+structFieldP :: Parser StructField
+structFieldP = do
+  loc <- getLocation
+  pub <- isJust <$> optional (rword "pub")
+  try (StructFn loc pub <$> functionP') <|>
+    (StructMember loc pub <$> identifier <*> (symbol ":" *> identifier <* semi))
 
 opTable :: [[E.Operator Parser Expr]]
 opTable =
