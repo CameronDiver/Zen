@@ -1,4 +1,4 @@
-module Language.Zen.SemanticAnalyser.Types where
+module Language.Zen.SemanticAnalyser.BuiltinTypes where
 
 import           Data.Maybe                (fromJust, isNothing)
 import           Data.Text                 as T

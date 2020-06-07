@@ -3,6 +3,7 @@ module Language.Zen.SemanticAnalyser
   , Language.Zen.SemanticAnalyser.Error.SemanticError
   ) where
 
+import           Control.Monad                       (when)
 import           Control.Monad.Except
 import           Control.Monad.State
 import           Data.List                           (find, partition)
@@ -29,13 +30,17 @@ checkProgram program = evalState (runExceptT (checkProgram' program)) baseEnv
         -- first function, but I don't want this to be a
         -- Maybe and have to constantly check
         , currentFunction = FunctionInterface "dummy" TyVoid []
+        , structs = []
         }
     checkProgram' :: Program -> Semantic SAProgram
     checkProgram' (Program entries)
       -- We want to create an implicit main function if any
       -- of the statements are top level
+      -- FIXME: Disallow top level statements if main is
+      -- defined
      = do
-      let (ss, fns) = partition isStatement entries
+      let (ss, other) = partition isStatement entries
+      let (fns, structs) = partition isFunction other
       let allFns =
             fmap
               (\(AST.Fn s) -> s)
@@ -46,12 +51,17 @@ checkProgram program = evalState (runExceptT (checkProgram' program)) baseEnv
                  then fns <> [generateMain ss]
                  else fns)
       mapM_ addFunctionInterface allFns
+      mapM_ addStructs $ fmap (\(AST.Struct s) -> s) structs
       checked <- mapM checkFunction allFns
       pure $ SAProgram checked
     isStatement topLevel =
       case topLevel of
         (AST.Statement _) -> True
         _                 -> False
+    isFunction topLevel =
+      case topLevel of
+        (AST.Struct _) -> True
+        _              -> False
     -- TODO: Change this janky code (we add a return 0 at
     -- the end when the user is not implementing main themselves)
     generateMain stmts =
@@ -90,6 +100,21 @@ addFunctionInterface (FunctionDef _ name args ret retloc _) = do
     certainArgTypes = fmap (\(FunctionArg {name = n}, t) -> (fromJust t, n))
     (FunctionArg argLoc _ argType) = fst $ fromJust unknownType
     returnType = typeFromText ret
+
+addStructs :: StructDef -> Semantic ()
+addStructs (StructDef loc name fields)
+  -- TODO: Check that all of the fields are of the
+  -- same name
+ = do
+  struct <- SAStruct name <$> mapM checkStructField fields
+  modify (\env -> env {structs = struct : structs env})
+  where
+    checkStructField (StructMember _ public fieldName ty) = do
+      let t = typeFromText ty
+      when (isNothing t) $ throwError $ UndefinedType loc ty
+      pure $ SAStructMember public fieldName (fromJust t)
+    checkStructField (StructFn _ public fn) =
+      SAStructFunction public <$> checkFunction fn
 
 checkExpr :: Expr -> Semantic SAExpr
 checkExpr expr =

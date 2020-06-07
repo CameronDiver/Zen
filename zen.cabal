@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b52ef6c5c7a170e43cf5075ee8291ded98dc75411d0f84b554f763f49f3c1bfa
+-- hash: 6d665863bdc546a82854992942ed68db3f82a3f572c3d750a41cfd2f76236b2e
 
 name:           zen
 version:        0.1.0.0
@@ -40,10 +40,10 @@ library
       Language.Zen.Lexemes
       Language.Zen.SemanticAnalyser
       Language.Zen.SemanticAnalyser.AST
+      Language.Zen.SemanticAnalyser.BuiltinTypes
       Language.Zen.SemanticAnalyser.Env
       Language.Zen.SemanticAnalyser.Error
       Language.Zen.SemanticAnalyser.Scope
-      Language.Zen.SemanticAnalyser.Types
       Language.Zen.Util
   other-modules:
       Paths_zen

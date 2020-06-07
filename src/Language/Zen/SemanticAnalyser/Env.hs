@@ -21,6 +21,7 @@ data Env
       { vars :: ScopeStack
       , functions :: Functions
       , currentFunction :: FunctionInterface
+      , structs :: [SAStruct]
       }
 
 type Semantic = ExceptT SemanticError (State Env)

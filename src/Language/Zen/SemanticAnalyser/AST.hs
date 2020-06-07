@@ -46,7 +46,26 @@ data SAFunction
       }
   deriving (Show)
 
-newtype SAProgram =
+data SAStruct
+  = SAStruct
+      { name :: Text
+      , fields :: [SAStructField]
+      }
+  deriving (Show)
+
+data SAStructField
+  = SAStructMember
+      { public :: Bool
+      , name :: Text
+      , fieldType :: Type
+      }
+  | SAStructFunction
+      { public :: Bool
+      , fn :: SAFunction
+      }
+  deriving (Show)
+
+data SAProgram =
   SAProgram [SAFunction]
   deriving (Show)
 
