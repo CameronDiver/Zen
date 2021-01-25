@@ -1,0 +1,9 @@
+struct MyStruct {
+	pub name: string;
+	pub age: int;
+	internalField: int;
+
+	pub doSomething(times: int) -> void {
+		printf("I'm doing something %i times\n", times);
+	}
+}

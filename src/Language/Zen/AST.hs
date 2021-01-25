@@ -10,6 +10,29 @@ newtype Program =
 data TopLevel
   = Statement Statement
   | Fn FunctionDef
+  | Struct StructDef
+  deriving (Show)
+
+data StructDef
+  = StructDef
+      { location :: Location
+      , name :: Text
+      , fields :: [StructField]
+      }
+  deriving (Show)
+
+data StructField
+  = StructMember
+      { location :: Location
+      , public :: Bool
+      , name :: Text
+      , fieldType :: Text
+      }
+  | StructFn
+      { location :: Location
+      , public :: Bool
+      , fn :: FunctionDef
+      }
   deriving (Show)
 
 data FunctionArg
